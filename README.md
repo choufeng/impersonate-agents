@@ -8,4 +8,8 @@
 4. Click on Load Unpacked and select the directory you pulled.
 5. You should be able to see this extension (IA) in the list of Chrome extensions.
 
-!(Screenshot.png)[./images/screenshot.png]
+![Screenshot.png](images/screenshot.png)
+
+> Why not public to chrome web store?
+
+- This extension is just for our company developers to use. It's not for public user.
