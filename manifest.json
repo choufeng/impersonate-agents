@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Tool for Impersonating Agents",
+  "version": "1.0",
+  "description": "A simple chrome extension for impersonate a agent.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png"
+    }
+  },
+  "options_page": "settings.html"
+}

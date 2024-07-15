@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        font-size: 14px;
+      }
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+      input,
+      button {
+        margin-left: 10px;
+        font-size: 14px;
+      }
+      #domain {
+        width: 200px;
+        height: 30px;
+      }
+      .agent-row {
+        margin-bottom: 10px;
+      }
+      .agent-row input {
+        height: 30px;
+        font-size: 14px;
+      }
+      .agent-row button {
+        height: 36px;
+        width: auto;
+      }
+      .agent-name {
+        width: 200px;
+      }
+
+      .agent-value {
+        width: 300px;
+      }
+
+      #addAgentButton,
+      #saveButton {
+        height: 36px;
+      }
+      #addAgentButton {
+        width: 100px;
+        height: 36px;
+      }
+      #saveButton {
+        width: 120px;
+        background-color: #007bff;
+        color: white;
+        border: 1px solid #4284fa;
+      }
+      #agentsContainer {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Settings</h1>
+    <label>
+      <input type="text" placeholder="domain" id="domain" />
+    </label>
+    <div id="agentsContainer">
+      <!-- Agents will be added here -->
+    </div>
+    <button id="addAgentButton">Add Agent</button>
+    <button id="saveButton">Save Changes</button>
+    <script src="settings.js"></script>
+  </body>
+</html>
