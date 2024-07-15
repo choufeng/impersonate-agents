@@ -71,3 +71,27 @@ window.addEventListener('load', function () {
         }
     });
 });
+
+document.getElementById('loadAgentsButton').addEventListener('click', function () {
+    if (confirm('Loading will overwrite the current configuration. Are you sure you want to proceed?')) {
+        const agentsCode = document.getElementById('agentsCode').value;
+        const optionRegex = /<option value="([^"]+)">([^<]+)<\/option>/g;
+        let match;
+        let agentsString = '';
+
+        while ((match = optionRegex.exec(agentsCode)) !== null) {
+            if (agentsString !== '') {
+                agentsString += '|';
+            }
+            agentsString += `${match[2]}:${match[1]}`;
+        }
+
+        if (agentsString === '') {
+            alert('No valid options found in the input.');
+        } else {
+            chrome.storage.sync.set({ agents: agentsString }, function () {
+                alert('Agents loaded successfully!');
+            });
+        }
+    }
+}); 
