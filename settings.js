@@ -91,6 +91,7 @@ document.getElementById('loadAgentsButton').addEventListener('click', function (
         } else {
             chrome.storage.sync.set({ agents: agentsString }, function () {
                 alert('Agents loaded successfully!');
+                location.reload();
             });
         }
     }
