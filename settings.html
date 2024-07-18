@@ -73,9 +73,19 @@
   </head>
   <body>
     <h1>Settings</h1>
+    <h3>Domain</h3>
     <label>
       <input type="text" placeholder="domain" id="domain" />
     </label>
+    <h3>Port</h3>
+    <p>
+      for local development, will autojump to this port, if it is empty, will
+      not change the port
+    </p>
+    <label>
+      <input type="text" placeholder="port" id="port" />
+    </label>
+    <h3>Agents</h3>
     <div id="agentsContainer">
       <!-- Agents will be added here -->
     </div>
@@ -83,8 +93,11 @@
     <button id="saveButton">Save Changes</button>
     <hr />
 
-    <h3>Load Agents from chrome bookmark code</h3>
-
+    <h2>Load Agents from chrome bookmark code</h2>
+    <p>
+      Some users who previously used js bookmarking methods can use this method
+      to load their agents.
+    </p>
     <div>
       <textarea id="agentsCode" placeholder=""></textarea>
     </div>

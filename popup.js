@@ -5,8 +5,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const list = document.getElementById('agentList');
 
-  chrome.storage.sync.get(['domain', 'agents'], function (result) {
+  chrome.storage.sync.get(['domain', 'port', 'agents'], function (result) {
     const domain = result.domain || '';
+    const port = result.port || '';
     const agents = result.agents ? result.agents.split('|') : [];
 
     agents.forEach(agent => {
@@ -26,14 +27,14 @@ document.addEventListener('DOMContentLoaded', function () {
           chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: impersonateAgent,
-            args: [selectedValue, domain]
+            args: [selectedValue, domain, port]
           });
         });
       }
     });
   });
 
-  function impersonateAgent(selectedValue, domain) {
+  function impersonateAgent(selectedValue, domain, port) {
     if (window.location.hostname.endsWith(domain)) {
       let impersonationBanner = document.querySelector("header.uc-impersonationBanner");
 
@@ -47,10 +48,16 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       function impersonateUser(userId) {
+        console.log("test", window.location.origin);
         postRequest("/impersonate/", { impersonation_tool: "a3g", targetUserId: userId })
           .then(() => {
-            console.log("Impersonating user done");
-            window.location.href = `${window.location.origin}/app/lab/overview`
+            console.log("Impersonating user done", window.location.origin, port);
+            const currentPort = window.location.port;
+            let baseUrl = window.location.origin;
+            if (port && currentPort) {
+              baseUrl = `${window.location.protocol}//${window.location.hostname}:${port}`;
+            }
+            window.location.href = `${baseUrl}/app/lab/overview`
           });
       }
 

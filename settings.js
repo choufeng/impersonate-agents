@@ -4,6 +4,7 @@ document.getElementById('addAgentButton').addEventListener('click', function () 
 
 document.getElementById('saveButton').addEventListener('click', function () {
     const domain = document.getElementById('domain').value;
+    const port = document.getElementById('port').value;
     const agents = [];
 
     document.querySelectorAll('.agent-row').forEach(row => {
@@ -18,6 +19,7 @@ document.getElementById('saveButton').addEventListener('click', function () {
 
     chrome.storage.sync.set({
         'domain': domain,
+        'port': port,
         'agents': agentsJoined
     }, function () {
         console.log('Settings saved');
@@ -58,9 +60,10 @@ function addAgentRow(name = '', value = '') {
 
 // Load settings when the page loads
 window.addEventListener('load', function () {
-    chrome.storage.sync.get(['domain', 'agents'], function (result) {
+    chrome.storage.sync.get(['domain', 'port', 'agents'], function (result) {
         console.log('Settings loaded', result);
         document.getElementById('domain').value = result.domain || '';
+        document.getElementById('port').value = result.port || '';
         if (result.agents) {
             result.agents.split('|').forEach(agent => {
                 const [name, value] = agent.split(':');
