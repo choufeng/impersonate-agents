@@ -4,11 +4,22 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   const list = document.getElementById('agentList');
+  const autoPortCheckbox = document.getElementById('autoPortConversion');
+  const portLabel = document.getElementById('portLabel');
 
-  chrome.storage.sync.get(['domain', 'port', 'agents'], function (result) {
+  chrome.storage.sync.get(['domain', 'port', 'agents', 'autoPortConversion'], function (result) {
     const domain = result.domain || '';
     const port = result.port || '';
     const agents = result.agents ? result.agents.split('|') : [];
+    const autoPortConversion = result.autoPortConversion || false;
+
+    autoPortCheckbox.checked = autoPortConversion;
+
+    autoPortCheckbox.addEventListener('change', function () {
+      chrome.storage.sync.set({ autoPortConversion: this.checked });
+    });
+
+    portLabel.innerHTML = port;
 
     agents.forEach(agent => {
       const [name, value] = agent.split(':');
@@ -27,14 +38,14 @@ document.addEventListener('DOMContentLoaded', function () {
           chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: impersonateAgent,
-            args: [selectedValue, domain, port]
+            args: [selectedValue, domain, port, autoPortCheckbox.checked]
           });
         });
       }
     });
   });
 
-  function impersonateAgent(selectedValue, domain, port) {
+  function impersonateAgent(selectedValue, domain, port, autoPortConversion) {
     if (window.location.hostname.endsWith(domain)) {
       let impersonationBanner = document.querySelector("header.uc-impersonationBanner");
 
@@ -54,8 +65,10 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("Impersonating user done", window.location.origin, port);
             const currentPort = window.location.port;
             let baseUrl = window.location.origin;
-            if (port && currentPort) {
+            if (autoPortConversion && port) {
               baseUrl = `${window.location.protocol}//${window.location.hostname}:${port}`;
+            } else if (currentPort) {
+              baseUrl = `${window.location.protocol}//${window.location.hostname}:${currentPort}`;
             }
             window.location.href = `${baseUrl}/app/lab/overview`
           });

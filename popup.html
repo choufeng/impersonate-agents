@@ -19,7 +19,7 @@
       }
       label {
         font-size: 16px;
-        display: block;
+        display: inline-block;
         margin-bottom: 4px;
       }
       .agent-list {
@@ -35,10 +35,28 @@
       .agent-list li:hover {
         background: #f9f9f9;
       }
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f2f2f2;
+        margin-bottom: 10px;
+      }
+      .checkbox-container input[type="checkbox"] {
+        margin-right: 5px;
+      }
     </style>
   </head>
   <body>
     <div class="container">
+      <div class="checkbox-container">
+        <label for="autoPortConversion">
+          <input type="checkbox" id="autoPortConversion">
+            conversion local port to <span id="portLabel"></span>
+          </input>
+        </label>
+      </div>
       <label for="agent-list">Impersonate: </label>
       <ul id="agentList" class="agent-list">
         <!-- Agents will be added here -->
