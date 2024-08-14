@@ -7,6 +7,7 @@
 3. Turn on the Developer Mode.
 4. Click on Load Unpacked and select the directory you pulled.
 5. You should be able to see this extension (IA) in the list of Chrome extensions.
+6. I recommend you pin IA into the bar
 
 ![Screenshot.png](images/screenshot.png)
 
