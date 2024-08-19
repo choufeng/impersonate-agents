@@ -59,13 +59,11 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       function impersonateUser(userId) {
-        console.log("test", window.location.origin);
         postRequest("/impersonate/", { impersonation_tool: "a3g", targetUserId: userId })
           .then(() => {
-            console.log("Impersonating user done", window.location.origin, port);
             const currentPort = window.location.port;
             let baseUrl = window.location.origin;
-            if (autoPortConversion && port) {
+            if (autoPortConversion && port && currentPort) {
               baseUrl = `${window.location.protocol}//${window.location.hostname}:${port}`;
             } else if (currentPort) {
               baseUrl = `${window.location.protocol}//${window.location.hostname}:${currentPort}`;
