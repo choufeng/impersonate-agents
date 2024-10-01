@@ -26,6 +26,8 @@
         list-style-type: none;
         padding: 0;
         margin: 7px;
+        overflow-y: auto;
+        max-height: 250px;
       }
       .agent-list li {
         cursor: pointer;
@@ -34,6 +36,9 @@
       }
       .agent-list li:hover {
         background: #f9f9f9;
+      }
+      .agent-list .selected {
+        background-color:beige;
       }
       .checkbox-container {
         display: flex;
@@ -46,9 +51,63 @@
       .checkbox-container input[type="checkbox"] {
         margin-right: 5px;
       }
+      .btn-container,
+      .flag-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .redirect-button {
+        width: 150px;
+        height: 30px;
+        background-color: #007bff;
+        color: white;
+        border: 1px solid #4284fa;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      .flag-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 7px;
+        overflow-y: auto;
+        max-height: 150px;
+      }
+      .flag-list li:hover {
+        background: #f9f9f9;
+      }
+      .flag-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        padding: 10px;
+        border-bottom: 1px solid #f2f2f2;
+      }
+      .flag-true {
+        color: green;
+      }
+      .coverArea {
+        display:none;
+        align-items: center;
+        justify-content: center;;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.9);
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 999;
+        color: white;
+        font-size: 1.1rem;
+      }
+      
     </style>
   </head>
   <body>
+    <div id="coverArea" class="coverArea">
+      You can't use it on this page.
+    </div>
     <div class="container">
       <div class="checkbox-container">
         <label for="autoPortConversion">
@@ -57,11 +116,16 @@
           </input>
         </label>
       </div>
-      <label for="agent-list">Impersonate: </label>
+      <label for="agent-list">Impersonates: </label>
       <ul id="agentList" class="agent-list">
         <!-- Agents will be added here -->
       </ul>
-      <div>
+      <label for="flag-list">Flags: </label>
+      <ul id="flagList" class="flag-list">
+        <!-- Flags will be added here -->
+      </ul>
+      <div class="btn-container">
+        <button id="redirectBtn" class="redirect-button">Redirect with flags</button>
         <a href="#" id="settingsLink">Settings</a>
       </div>
     </div>

@@ -43,15 +43,15 @@
         width: 300px;
       }
 
-      #addAgentButton,
-      #saveButton {
+      .addAgentButton,
+      .saveButton {
         height: 36px;
       }
-      #addAgentButton {
+      .addAgentButton {
         width: 100px;
         height: 36px;
       }
-      #saveButton {
+      .saveButton {
         width: 120px;
         background-color: #007bff;
         color: white;
@@ -61,13 +61,20 @@
         margin-bottom: 20px;
         border-bottom: 1px solid #ccc;
       }
-      #agentsCode {
-        width: 300px;
-        height: 150px;
+
+      .flag-row {
+        margin-bottom: 10px;
       }
-      #loadAgentsButton {
-        margin: 0;
-        width: 80px;
+      .flag-row input {
+        height: 30px;
+        font-size: 14px;
+      }
+      .flag-row button {
+        height: 36px;
+        width: auto;
+      }
+      .flag-name {
+        width: 200px;
       }
     </style>
   </head>
@@ -90,20 +97,16 @@
       <!-- Agents will be added here -->
     </div>
     <button id="addAgentButton">Add Agent</button>
-    <button id="saveButton">Save Changes</button>
+    <button id="saveButton" class="saveButton">Save Changes</button>
     <hr />
 
-    <h2>Load Agents from chrome bookmark code</h2>
-    <p>
-      Some users who previously used js bookmarking methods can use this method
-      to load their agents.
-    </p>
-    <div>
-      <textarea id="agentsCode" placeholder=""></textarea>
+    <h3>Flags</h3>
+    <div id="flagsContainer">
+      <!-- Flags will be added here -->
     </div>
-    <div>
-      <button id="loadAgentsButton">Load</button>
-    </div>
+    <button id="addFlagButton">Add Flag</button>
+    <button id="saveFlagButton" class="saveButton">Save Changes</button>
+
     <script src="settings.js"></script>
   </body>
 </html>
