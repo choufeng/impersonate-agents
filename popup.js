@@ -316,7 +316,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('settingsLink').addEventListener('click', function () {
     chrome.runtime.openOptionsPage();
   });
-
+  document.getElementById('settingsLinkForCover').addEventListener('click', function () {
+    chrome.runtime.openOptionsPage();
+  });
   document.getElementById('redirectBtn').addEventListener('click', await redirect);
 
   await main();
