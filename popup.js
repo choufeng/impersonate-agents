@@ -90,8 +90,8 @@ async function handlerClickAgent(event) {
   domNode.clearNode('agentList');
   setAgentList();
 
-  // redirect
-  await redirect();
+  // impersonate agent
+  await impersonateAgent();
 }
 
 function setAgentList() {
@@ -160,7 +160,7 @@ function setFlagList() {
   });
 }
 
-async function startEngine(currentAgent, newURL) {
+async function startEngine(newURL, currentAgent) {
   function setRedirectMessage() {
     // create a element to body, and set width = 400px, height=300px, background-color=black, with words "Loading..." in the center of the screen
     const coverNode = document.createElement('div');
@@ -198,15 +198,37 @@ async function startEngine(currentAgent, newURL) {
   setRedirectMessage();
   let impersonationBanner = document.querySelector("header.uc-impersonationBanner");
 
-  if (impersonationBanner) {
-    postRequest("/unimpersonate/", { impersonation_tool: "impersonation_banner" })
-      .then(() => impersonateUser(currentAgent));
+  if (currentAgent) {
+    if (impersonationBanner) {
+      postRequest("/unimpersonate/", { impersonation_tool: "impersonation_banner" })
+        .then(() => impersonateUser(currentAgent));
+    } else {
+      impersonateUser(currentAgent);
+    }
   } else {
-    impersonateUser(currentAgent);
+    window.location.href = newURL;
   }
 }
 
 async function redirect() {
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  let url = new URL(tabs[0].url);
+  const flags = state.flags.map(flag => {
+    const [name, value] = flag.split(':');
+    return `opty_${name}=${value}`;
+  }).join('&');
+
+  const newURL = `${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ''}${url.pathname}${flags ? `?${flags}` : ''}`;
+
+  await chrome.scripting.executeScript({
+    target: { tabId: tabs[0].id },
+    world: chrome.scripting.ExecutionWorld.MAIN,
+    func: startEngine,
+    args: [newURL],
+  });
+}
+
+async function impersonateAgent() {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   const currentURL = new URL(tabs[0].url);
   let newURL = `${currentURL.protocol}//${currentURL.hostname}`;
@@ -226,7 +248,7 @@ async function redirect() {
     target: { tabId: tabs[0].id },
     world: chrome.scripting.ExecutionWorld.MAIN,
     func: startEngine,
-    args: [state.currentAgent, newURL],
+    args: [newURL, state.currentAgent],
   });
 }
 
@@ -294,189 +316,14 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('settingsLink').addEventListener('click', function () {
     chrome.runtime.openOptionsPage();
   });
-
-  document.getElementById('redirectBtn').addEventListener('click', redirect);
+  document.getElementById('settingsLinkForCover').addEventListener('click', function () {
+    chrome.runtime.openOptionsPage();
+  });
+  document.getElementById('redirectBtn').addEventListener('click', await redirect);
 
   await main();
 
   // Watch Storage
   watchStorage();
 
-  function getSettings() {
-    // const list = document.getElementById('agentList');
-    // const autoPortCheckbox = document.getElementById('autoPortConversion');
-    // const portLabel = document.getElementById('portLabel');
-    // const flagList = document.getElementById('flagList');
-
-    // clear list, autoPortCheckbox, autoPortCheckbox, flagList
-    list.innerHTML = '';
-    autoPortCheckbox.checked = false;
-    portLabel.innerHTML = '';
-    flagList.innerHTML = '';
-
-    chrome.storage.sync.get(['domain', 'port', 'agents', 'autoPortConversion', 'flags'], function (result) {
-      state.setState('domain', result.domain || '')
-      state.setState('port', result.port || '')
-      state.setState('agents', result.agents ? result.agents.split('|') : [])
-      state.setState('flags', result.flags ? result.flags.split('|') : [])
-      state.setState('autoPortConversion', result.autoPortConversion || false);
-
-      autoPortCheckbox.checked = state.autoPortConversion;
-
-      autoPortCheckbox.removeEventListener('change', handleAutoPortConversion);
-      autoPortCheckbox.addEventListener('change', handleAutoPortConversion);
-
-      portLabel.innerHTML = state.port;
-
-      state.agents.forEach(agent => {
-        const [name, value] = agent.split(':');
-        const li = document.createElement('li');
-        li.textContent = name;
-        li.setAttribute('data-value', value);
-        list.appendChild(li);
-      });
-
-      state.flags.forEach(flag => {
-        const [name, value] = flag.split(':');
-        const li = document.createElement('li');
-        li.setAttribute('data-name', name);
-        li.setAttribute('data-value', value);
-
-        const flagContent = document.createElement('div');
-        flagContent.classList.add('flag-content');
-        flagContent.textContent = name;
-        flagContent.setAttribute('data-name', name);
-        flagContent.setAttribute('data-value', value);
-
-        const flagValue = document.createElement('div');
-        flagValue.classList.add('flag-value');
-        if (value === 'true') {
-          flagValue.classList.add('flag-true');
-        }
-        flagValue.textContent = value;
-        flagValue.setAttribute('data-name', name);
-        flagValue.setAttribute('data-value', value);
-
-        li.appendChild(flagContent);
-        li.appendChild(flagValue);
-
-        flagList.appendChild(li);
-      });
-
-      flagList.removeEventListener('click', flagListClickHandler);
-      flagList.addEventListener('click', flagListClickHandler);
-
-      list.removeEventListener('click', handlerClickAgent);
-      list.addEventListener('click', handlerClickAgent);
-    });
-  };
-
-  function jumpUrl() {
-    function impersonateAgent(tab) {
-      console.log('impersonateAgent function called');
-      console.log('show sss', state, tab);
-
-      if (window.location.hostname.endsWith(state.domain)) {
-        let impersonationBanner = document.querySelector("header.uc-impersonationBanner");
-
-        function postRequest(url, data) {
-          return fetch(url, {
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(data),
-            method: "POST",
-            credentials: "same-origin"
-          });
-        }
-
-        function impersonateUser(userId) {
-          postRequest("/impersonate/", { impersonation_tool: "a3g", targetUserId: userId })
-            .then(() => {
-              console.log('impersonate begin');
-              const currentPort = window.location.port;
-              let baseUrl = window.location.origin;
-              if (state.autoPortConversion && state.port && currentPort) {
-                baseUrl = `${window.location.protocol}//${window.location.hostname}:${state.port}`;
-              } else if (currentPort) {
-                baseUrl = `${window.location.protocol}//${window.location.hostname}:${currentPort}`;
-              }
-              console.log('url', baseUrl);
-              // comb flags
-              let flagString = '';
-              window.location.href = `${baseUrl}/app/lab/overview`
-            });
-        }
-
-        if (impersonationBanner) {
-          postRequest("/unimpersonate/", { impersonation_tool: "impersonation_banner" })
-            .then(() => impersonateUser(state.currentAgent));
-        } else {
-          impersonateUser(state.currentAgent);
-        }
-      } else {
-        try {
-          alert(`You can only impersonate agents on ${state.domain}, and make sure you have the permission.`);
-        } catch (error) {
-          console.error("Error in alert:", error);
-        }
-      }
-    }
-    const logFunction = (tab) => {
-      console.log('show logFunction', tab);
-      // const script = document.createElement('script');
-      // script.textContent = 'console.log("show xxxx");';
-      // document.documentElement.appendChild(script);
-      // script.remove();
-    }
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      const tab = tabs[0];
-      console.log('show jumpUrl', state, tab)
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: logFunction,
-        world: chrome.scripting.ExecutionWorld.MAIN,
-        args: [tab],
-      }).then(() => {
-        console.log('Script executed');
-      }).catch(err => {
-        console.error('Error', err);
-      });
-    })
-  }
-
-  function handlerClickAgent(event) {
-    state.setState('currentAgent', event.target.getAttribute('data-value'));
-    jumpUrl();
-  }
-
-  function flagListClickHandler(event) {
-    const node = event.target;
-    const selectedName = node.getAttribute('data-name');
-    settingFlagValue(selectedName);
-  }
-
-  function handleAutoPortConversion() {
-    chrome.storage.sync.set({ autoPortConversion: this.checked });
-  }
-
-  function settingFlagValue(name) {
-    chrome.storage.sync.get(['flags'], function (result) {
-      const flags = result.flags ? result.flags.split('|') : [];
-      const newFlags = flags.map(flag => {
-        const [flagName, flagValue] = flag.split(':');
-        if (flagName === name) {
-          return `${flagName}:${flagValue === 'true' ? 'false' : 'true'}`;
-        }
-        return flag;
-      });
-
-      const flagsJoined = newFlags.join('|');
-      chrome.storage.sync.set({ flags: flagsJoined }, function () {
-        console.log('Flag settings saved');
-      });
-
-      // getSettings();
-    });
-  };
-
-  // getSettings();
 });
