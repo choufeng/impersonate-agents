@@ -1,6 +1,7 @@
 const state = {
   domain: '',
   port: '',
+  path: '',
   agents: [],
   flags: [],
   autoPortConversion: false,
@@ -32,6 +33,7 @@ const domNode = {
 const StorageKey = {
   domain: 'domain',
   port: 'port',
+  path: 'path',
   agents: 'agents',
   autoPortConversion: 'autoPortConversion',
   flags: 'flags',
@@ -50,6 +52,9 @@ function setDomainState(value) {
 function setPortState(value) {
   state.setState('port', value || '');
 }
+function setPathState(value) {
+  state.setState('path', value || '');
+}
 function setAgentsState(value) {
   state.setState('agents', value ? value.split('|') : []);
 }
@@ -64,6 +69,7 @@ async function getSettingsAndSetState() {
   const storageData = await chrome.storage.sync.get(Object.values(StorageKey));
   setDomainState(storageData[StorageKey.domain]);
   setPortState(storageData[StorageKey.port]);
+  setPathState(storageData[StorageKey.path]);
   setAgentsState(storageData[StorageKey.agents]);
   setFlagsState(storageData[StorageKey.flags]);
   setAutoPortConversionState(storageData[StorageKey.autoPortConversion]);
@@ -242,7 +248,7 @@ async function impersonateAgent() {
     const [name, value] = flag.split(':');
     return `opty_${name}=${value}`;
   }).join('&');
-  newURL = `${newURL}/app/lab/overview${flags ? `?${flags}` : ''}`;
+  newURL = `${newURL}${state.path}${flags ? `?${flags}` : ''}`;
 
   await chrome.scripting.executeScript({
     target: { tabId: tabs[0].id },
