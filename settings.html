@@ -76,6 +76,23 @@
       .flag-name {
         width: 200px;
       }
+      .param-row {
+        margin-bottom: 10px;
+      }
+      .param-row input {
+        height: 30px;
+        font-size: 14px;
+      }
+      .param-row button {
+        height: 36px;
+        width: auto;
+      }
+      .param-name {
+        width: 200px;
+      }
+      .param-value {
+        width: 200px;
+      }
     </style>
   </head>
   <body>
@@ -105,12 +122,21 @@
     <button id="saveButton" class="saveButton">Save Changes</button>
     <hr />
 
-    <h3>Flags</h3>
+    <h3>Flags (opty_)</h3>
     <div id="flagsContainer">
       <!-- Flags will be added here -->
     </div>
     <button id="addFlagButton">Add Flag</button>
     <button id="saveFlagButton" class="saveButton">Save Changes</button>
+
+    <hr />
+    
+    <h3>Parameters</h3>
+    <div id="paramsContainer">
+      <!-- Parameters will be added here -->
+    </div>
+    <button id="addParamButton">Add Parameter</button>
+    <button id="saveParamButton" class="saveButton">Save Changes</button>
 
     <script src="settings.js"></script>
   </body>

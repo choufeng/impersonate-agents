@@ -4,6 +4,7 @@ const state = {
   path: '',
   agents: [],
   flags: [],
+  params: [], // 新增params数组
   autoPortConversion: false,
   currentAgent: '',
   setState: function (key, value) {
@@ -16,6 +17,7 @@ const domNode = {
   autoPortCheckbox: null,
   portLabel: null,
   flagList: null,
+  paramList: null, // 新增paramList节点
   setNode: function (key, value) {
     this[key] = value;
   },
@@ -27,6 +29,7 @@ const domNode = {
     this.clearNode('autoPortCheckbox', false);
     this.clearNode('portLabel');
     this.clearNode('flagList');
+    this.clearNode('paramList'); // 新增paramList清理
   },
 }
 
@@ -37,6 +40,7 @@ const StorageKey = {
   agents: 'agents',
   autoPortConversion: 'autoPortConversion',
   flags: 'flags',
+  params: 'params', // 新增params key
 }
 
 function setNodes() {
@@ -44,6 +48,7 @@ function setNodes() {
   domNode.setNode('autoPortCheckbox', document.getElementById('autoPortConversion'));
   domNode.setNode('portLabel', document.getElementById('portLabel'));
   domNode.setNode('flagList', document.getElementById('flagList'));
+  domNode.setNode('paramList', document.getElementById('paramList')); // 新增paramList节点设置
 }
 
 function setDomainState(value) {
@@ -61,6 +66,9 @@ function setAgentsState(value) {
 function setFlagsState(value) {
   state.setState('flags', value ? value.split('|') : []);
 }
+function setParamsState(value) {
+  state.setState('params', value ? value.split('|') : []);
+}
 function setAutoPortConversionState(value) {
   state.setState('autoPortConversion', value || false);
 }
@@ -72,6 +80,7 @@ async function getSettingsAndSetState() {
   setPathState(storageData[StorageKey.path]);
   setAgentsState(storageData[StorageKey.agents]);
   setFlagsState(storageData[StorageKey.flags]);
+  setParamsState(storageData[StorageKey.params]); // 新增params状态设置
   setAutoPortConversionState(storageData[StorageKey.autoPortConversion]);
 }
 
@@ -80,7 +89,6 @@ function setAutoPortCheckbox() {
   domNode.autoPortCheckbox.removeEventListener('change', handleAutoPortConversion);
   domNode.autoPortCheckbox.addEventListener('change', handleAutoPortConversion);
 }
-
 
 function handleAutoPortConversion() {
   chrome.storage.sync.set({ autoPortConversion: this.checked });
@@ -166,6 +174,46 @@ function setFlagList() {
   });
 }
 
+function setParamList() {
+  state.params.forEach(param => {
+    const [name, value] = param.split(':');
+    const li = document.createElement('li');
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.classList.add('param-name');
+    nameSpan.textContent = name;
+    
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.classList.add('param-value-input');
+    valueInput.value = value;
+    valueInput.setAttribute('data-name', name);
+    
+    // 当值改变时更新存储
+    valueInput.addEventListener('change', async function(event) {
+      const newValue = event.target.value;
+      const paramName = event.target.getAttribute('data-name');
+      
+      const updatedParams = state.params.map(p => {
+        const [name, value] = p.split(':');
+        if (name === paramName) {
+          return `${name}:${newValue}`;
+        }
+        return p;
+      });
+      
+      await chrome.storage.sync.set({ 
+        'params': updatedParams.join('|') 
+      });
+    });
+    
+    li.appendChild(nameSpan);
+    li.appendChild(valueInput);
+    
+    domNode.paramList.appendChild(li);
+  });
+}
+
 async function startEngine(newURL, currentAgent) {
   function setRedirectMessage() {
     // create a element to body, and set width = 400px, height=300px, background-color=black, with words "Loading..." in the center of the screen
@@ -219,12 +267,23 @@ async function startEngine(newURL, currentAgent) {
 async function redirect() {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   let url = new URL(tabs[0].url);
+  
+  // 处理opty_前缀的flags
   const flags = state.flags.map(flag => {
     const [name, value] = flag.split(':');
     return `opty_${name}=${value}`;
-  }).join('&');
+  });
 
-  const newURL = `${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ''}${url.pathname}${flags ? `?${flags}` : ''}`;
+  // 处理普通参数
+  const params = state.params.map(param => {
+    const [name, value] = param.split(':');
+    return `${name}=${value}`;
+  });
+
+  // 合并所有参数
+  const allParams = [...flags, ...params].join('&');
+
+  const newURL = `${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ''}${url.pathname}${allParams ? `?${allParams}` : ''}`;
 
   await chrome.scripting.executeScript({
     target: { tabId: tabs[0].id },
@@ -243,12 +302,23 @@ async function impersonateAgent() {
   } else if (currentURL.port) {
     newURL = `${newURL}:${currentURL.port}`;
   }
-  // pamameters, contact all flags like ?opty_flag1=true&opty_flag2=false
+
+  // 处理opty_前缀的flags
   const flags = state.flags.map(flag => {
     const [name, value] = flag.split(':');
     return `opty_${name}=${value}`;
-  }).join('&');
-  newURL = `${newURL}${state.path}${flags ? `?${flags}` : ''}`;
+  });
+
+  // 处理普通参数
+  const params = state.params.map(param => {
+    const [name, value] = param.split(':');
+    return `${name}=${value}`;
+  });
+
+  // 合并所有参数
+  const allParams = [...flags, ...params].join('&');
+
+  newURL = `${newURL}${state.path}${allParams ? `?${allParams}` : ''}`;
 
   await chrome.scripting.executeScript({
     target: { tabId: tabs[0].id },
@@ -277,6 +347,9 @@ function watchStorage() {
             break;
           case 'flags':
             setFlagsState(changes[key].newValue);
+            break;
+          case 'params':
+            setParamsState(changes[key].newValue);
             break;
           case 'autoPortConversion':
             setAutoPortConversionState(changes[key].newValue);
@@ -316,6 +389,7 @@ async function main() {
   setPortLabel();
   setAgentList();
   setFlagList();
+  setParamList(); // 新增参数列表设置
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
@@ -325,7 +399,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('settingsLinkForCover').addEventListener('click', function () {
     chrome.runtime.openOptionsPage();
   });
-  document.getElementById('redirectBtn').addEventListener('click', await redirect);
+  document.getElementById('redirectBtn').addEventListener('click', async () => {
+    await redirect();
+  });
 
   await main();
 
