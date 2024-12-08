@@ -4,7 +4,7 @@ const state = {
   path: '',
   agents: [],
   flags: [],
-  params: [], // 新增params数组
+  params: [], 
   autoPortConversion: false,
   currentAgent: '',
   setState: function (key, value) {
@@ -13,11 +13,11 @@ const state = {
 }
 
 const domNode = {
-  agentList: null,
+  agentSelect: null,
   autoPortCheckbox: null,
   portLabel: null,
   flagList: null,
-  paramList: null, // 新增paramList节点
+  paramList: null,
   setNode: function (key, value) {
     this[key] = value;
   },
@@ -25,11 +25,11 @@ const domNode = {
     this[key].innerHTML = value;
   },
   clearNodesInnerHTML: function () {
-    this.clearNode('agentList');
+    this.clearNode('agentSelect');
     this.clearNode('autoPortCheckbox', false);
     this.clearNode('portLabel');
     this.clearNode('flagList');
-    this.clearNode('paramList'); // 新增paramList清理
+    this.clearNode('paramList');
   },
 }
 
@@ -40,15 +40,15 @@ const StorageKey = {
   agents: 'agents',
   autoPortConversion: 'autoPortConversion',
   flags: 'flags',
-  params: 'params', // 新增params key
+  params: 'params', 
 }
 
 function setNodes() {
-  domNode.setNode('agentList', document.getElementById('agentList'));
+  domNode.setNode('agentSelect', document.getElementById('agentSelect'));
   domNode.setNode('autoPortCheckbox', document.getElementById('autoPortConversion'));
   domNode.setNode('portLabel', document.getElementById('portLabel'));
   domNode.setNode('flagList', document.getElementById('flagList'));
-  domNode.setNode('paramList', document.getElementById('paramList')); // 新增paramList节点设置
+  domNode.setNode('paramList', document.getElementById('paramList'));
 }
 
 function setDomainState(value) {
@@ -80,7 +80,7 @@ async function getSettingsAndSetState() {
   setPathState(storageData[StorageKey.path]);
   setAgentsState(storageData[StorageKey.agents]);
   setFlagsState(storageData[StorageKey.flags]);
-  setParamsState(storageData[StorageKey.params]); // 新增params状态设置
+  setParamsState(storageData[StorageKey.params]); 
   setAutoPortConversionState(storageData[StorageKey.autoPortConversion]);
 }
 
@@ -101,27 +101,39 @@ function setPortLabel() {
 
 async function handlerClickAgent(event) {
   state.setState('currentAgent', event.target.getAttribute('data-value'));
-  domNode.clearNode('agentList');
-  setAgentList();
+  domNode.clearNode('agentSelect');
+  setAgentSelect();
 
   // impersonate agent
   await impersonateAgent();
 }
 
-function setAgentList() {
+function setAgentSelect() {
+  // 添加默认选项
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = 'Select an agent';
+  domNode.agentSelect.appendChild(defaultOption);
+
+  // 添加所有agent选项
   state.agents.forEach(agent => {
     const [name, value] = agent.split(':');
-    const li = document.createElement('li');
-    li.textContent = name;
-    li.setAttribute('data-value', value);
-    if (state.currentAgent === value) {
-      li.classList.add('selected');
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = name;
+    if (value === state.currentAgent) {
+      option.selected = true;
     }
-    domNode.agentList.appendChild(li);
+    domNode.agentSelect.appendChild(option);
   });
 
-  domNode.agentList.removeEventListener('click', handlerClickAgent);
-  domNode.agentList.addEventListener('click', handlerClickAgent);
+  // 添加change事件监听器
+  domNode.agentSelect.addEventListener('change', async function(event) {
+    state.setState('currentAgent', event.target.value);
+    if (event.target.value) {
+      await impersonateAgent();
+    }
+  });
 }
 
 async function handleSwitchFlag(event) {
@@ -387,9 +399,9 @@ async function main() {
   // set Nodes innerHTML
   setAutoPortCheckbox();
   setPortLabel();
-  setAgentList();
+  setAgentSelect();
   setFlagList();
-  setParamList(); // 新增参数列表设置
+  setParamList(); 
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
