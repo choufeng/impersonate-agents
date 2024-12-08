@@ -111,9 +111,66 @@ document.getElementById('saveFlagButton').addEventListener('click', function () 
     });
 });
 
+/** parameters start
+ **/
+function addParamRow(name = '', value = '') {
+    const container = document.getElementById('paramsContainer');
+    const row = document.createElement('div');
+    row.className = 'param-row';
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'param-name';
+    nameInput.placeholder = 'Parameter Name';
+    nameInput.value = name;
+
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.className = 'param-value';
+    valueInput.placeholder = 'Parameter Value';
+    valueInput.value = value;
+
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener('click', function () {
+        if (confirm('Are you sure you want to delete this parameter?')) {
+            row.remove();
+        }
+    });
+
+    row.appendChild(nameInput);
+    row.appendChild(valueInput);
+    row.appendChild(deleteButton);
+    container.appendChild(row);
+}
+
+document.getElementById('addParamButton').addEventListener('click', function () {
+    addParamRow();
+});
+
+document.getElementById('saveParamButton').addEventListener('click', function () {
+    const params = [];
+
+    document.querySelectorAll('.param-row').forEach(row => {
+        const name = row.querySelector('.param-name').value;
+        const value = row.querySelector('.param-value').value;
+        if (name && value) {
+            params.push(`${name}:${value}`);
+        }
+    });
+
+    const paramsJoined = params.join('|');
+    chrome.storage.sync.set({
+        'params': paramsJoined
+    }, function () {
+        console.log('Parameter settings saved');
+        alert('Parameter settings saved!');
+    });
+});
+
 // Load settings when the page loads
 window.addEventListener('load', function () {
-    chrome.storage.sync.get(['domain', 'port', 'agents', 'flags', 'path'], function (result) {
+    chrome.storage.sync.get(['domain', 'port', 'agents', 'flags', 'path', 'params'], function (result) {
         console.log('Settings loaded', result);
         document.getElementById('domain').value = result.domain || '';
         document.getElementById('port').value = result.port || '';
@@ -128,8 +185,14 @@ window.addEventListener('load', function () {
         }
         if (result.flags) {
             result.flags.split('|').forEach(flag => {
-                const [name, value] = flag.split(':');
-                addFlagRow(name, value);
+                const [name] = flag.split(':');
+                addFlagRow(name);
+            });
+        }
+        if (result.params) {
+            result.params.split('|').forEach(param => {
+                const [name, value] = param.split(':');
+                addParamRow(name, value);
             });
         }
     });
