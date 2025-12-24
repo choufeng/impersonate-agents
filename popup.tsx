@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./style.css";
 
 export default function Popup() {
   const [count, setCount] = useState(0);
@@ -11,6 +12,7 @@ export default function Popup() {
 
   return (
     <div
+      data-theme="abyss"
       style={{
         fontFamily: "Arial, sans-serif",
         padding: "10px",
@@ -18,22 +20,14 @@ export default function Popup() {
         minHeight: "400px",
       }}
     >
-      <h1>🟢 [POPUP] Popup Page</h1>
+      <h1 className="text-2xl font-bold text-abyss-primary">
+        🟢 [POPUP] Popup Page
+      </h1>
       <p style={{ marginTop: "20px" }}>
-        Hot reload test - Click count: <strong>{count}</strong>
+        Hot reload test - Click count:{" "}
+        <strong className="text-abyss-primary">{count}</strong>
       </p>
-      <button
-        onClick={handleClick}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#007bff",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontSize: "16px",
-        }}
-      >
+      <button onClick={handleClick} className="btn btn-primary">
         Click me!
       </button>
     </div>
