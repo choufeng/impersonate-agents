@@ -1,1 +1,1 @@
-console.log("🔴 [BACKGROUND] Background service worker started")
+console.log("🔴 [BACKGROUND] Background service worker started");

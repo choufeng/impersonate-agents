@@ -150,6 +150,7 @@ Popup 页面（弹窗）：
 
 function IndexPopup() {
 return (
+
 <div style={{ padding: 16 }}>
 <h1>欢迎来到扩展</h1>
 </div>
@@ -188,6 +189,7 @@ tabs/delta-flyer.tsx：
 
 function DeltaFlyerPage() {
 return (
+
 <div style={{ display: "flex", flexDirection: "column", padding: 16 }}>
 <h2>Delta Flyer Tab</h2>
 <p>This tab is only available on the Delta Flyer page.</p>
@@ -327,6 +329,7 @@ return style
 
 const PlasmoOverlay = () => {
 return (
+
 <div className="p-4 bg-blue-500 text-white">
 Hello from Tailwind
 </div>
@@ -471,6 +474,7 @@ function Component() {
 const mailPort = usePort("mail")
 
 return (
+
 <div>
 {mailPort.data?.message}
 <button
@@ -768,6 +772,7 @@ locales/en/messages.json：
 
 function IndexPopup() {
 return (
+
 <div>
 <h2>{chrome.i18n.getMessage("popup")}</h2>
 </div>
@@ -888,6 +893,7 @@ return style
 
 const PlasmoOverlay = () => {
 return (
+
 <div className="bg-blue-500 text-white p-4">
 Hello
 </div>
@@ -985,6 +991,7 @@ popup.tsx：
 
 function IndexPopup() {
 return (
+
 <div style={{ width: 300, padding: 20 }}>
 <h1>我的扩展</h1>
 <p>这是一个简单的扩展示例</p>
@@ -1074,6 +1081,7 @@ function IndexPopup() {
 const [count, setCount] = useStorage("count", 0)
 
 return (
+
 <div>
 <h1>计数: {count}</h1>
 <button onClick={() => setCount(count + 1)}>增加</button>
@@ -1092,6 +1100,7 @@ function OptionsPage() {
 const [count, setCount] = useStorage("count", 0)
 
 return (
+
 <div>
 <h1>选项页</h1>
 <p>当前计数: {count}</p>
