@@ -81,9 +81,9 @@ const FormModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      setFormData(initialValues);
+      setFormData(initialValues || {});
     }
-  }, [isOpen, initialValues]);
+  }, [isOpen]);
 
   const handleChange = (name: string, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));

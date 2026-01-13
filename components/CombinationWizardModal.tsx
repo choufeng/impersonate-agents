@@ -74,11 +74,10 @@ export default function CombinationWizardModal({
     if (isOpen) {
       resetForm();
     }
-  }, [isOpen, editingCombination]);
+  }, [isOpen, editingCombination?.id]);
 
   const resetForm = () => {
     setCurrentStep(1);
-    setTitle("");
     setSelectedAgentId(null);
     setSelectedPortId(null);
     setSelectedUriId(null);
@@ -92,6 +91,8 @@ export default function CombinationWizardModal({
       setSelectedUriId(editingCombination.uriId);
       setSelectedTailParamIds(new Set(editingCombination.tailParameterIds));
       setSelectedOptyParamIds(new Set(editingCombination.optyParameterIds));
+    } else {
+      setTitle("");
     }
   };
 
