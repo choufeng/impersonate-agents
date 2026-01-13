@@ -131,7 +131,7 @@ export interface StorageData {
 /**
  * 用于创建和更新操作的类型
  */
-export type CreateAgent = Omit<Agent, "id">;
+export type CreateAgent = Agent;
 export type CreatePort = Omit<Port, "id">;
 export type CreateUri = Omit<UriEntry, "id">;
 export type CreateTailParameter = Omit<TailParameter, "id">;
@@ -144,7 +144,7 @@ export type CreateCombination = Omit<
 /**
  * 用于更新操作的类型
  */
-export type UpdateAgent = Partial<Omit<Agent, "id">>;
+export type UpdateAgent = Partial<Agent>;
 export type UpdatePort = Partial<Omit<Port, "id">>;
 export type UpdateUri = Partial<Omit<UriEntry, "id">>;
 export type UpdateTailParameter = Partial<Omit<TailParameter, "id">>;

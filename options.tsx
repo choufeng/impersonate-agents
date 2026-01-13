@@ -63,6 +63,7 @@ interface FormModalProps {
     type: "text" | "number";
     required?: boolean;
     placeholder?: string;
+    disabled?: boolean;
   }[];
   initialValues?: Record<string, any>;
   isLoading?: boolean;
@@ -118,7 +119,7 @@ const FormModal = ({
                   required={field.required}
                   value={formData[field.name] || ""}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  disabled={isLoading}
+                  disabled={isLoading || field.disabled}
                 />
               </div>
             ))}
@@ -364,7 +365,7 @@ export default function Options() {
     setAgentModalOpen(true);
   };
 
-  const handleSaveAgent = async (data: { username: string }) => {
+  const handleSaveAgent = async (data: Agent) => {
     if (editingAgent) {
       await updateAgent(editingAgent.id, data);
       showToast("Agent 已更新");
@@ -987,6 +988,13 @@ export default function Options() {
         title={editingAgent ? "编辑 Agent" : "添加 Agent"}
         onSubmit={handleSaveAgent}
         fields={[
+          {
+            name: "id",
+            label: "Agent ID",
+            type: "text",
+            required: true,
+            placeholder: "请输入 Agent ID",
+          },
           {
             name: "username",
             label: "用户名",

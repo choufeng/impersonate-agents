@@ -103,15 +103,16 @@ export const getAgentById = async (id: string): Promise<Agent | null> => {
  * 创建新的 Agent
  */
 export const createAgent = async (data: CreateAgent): Promise<Agent> => {
-  const newAgent: Agent = {
-    id: generateId(),
-    ...data,
-  };
-
   const agents = await getAgents();
-  await storage.set("agents", [...agents, newAgent]);
 
-  return newAgent;
+  // 检查 ID 是否已存在
+  if (agents.some((agent) => agent.id === data.id)) {
+    throw new Error(`Agent ID "${data.id}" 已存在`);
+  }
+
+  await storage.set("agents", [...agents, data]);
+
+  return data;
 };
 
 /**
@@ -122,6 +123,14 @@ export const updateAgent = async (
   updates: UpdateAgent,
 ): Promise<void> => {
   const agents = await getAgents();
+
+  // 如果更新包含 ID，检查新 ID 是否已存在
+  if (updates.id && updates.id !== id) {
+    if (agents.some((agent) => agent.id === updates.id)) {
+      throw new Error(`Agent ID "${updates.id}" 已存在`);
+    }
+  }
+
   const updated = agents.map((agent) =>
     agent.id === id ? { ...agent, ...updates } : agent,
   );
