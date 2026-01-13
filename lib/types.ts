@@ -54,7 +54,7 @@ export interface TailParameter {
 export interface OptyParameter {
   id: string;
   key: string; // Should start with "OPTY"
-  value: string;
+  value: boolean;
 }
 
 /**

@@ -60,7 +60,7 @@ interface FormModalProps {
   fields: {
     name: string;
     label: string;
-    type: "text" | "number";
+    type: "text" | "number" | "switch";
     required?: boolean;
     placeholder?: string;
     disabled?: boolean;
@@ -112,15 +112,25 @@ const FormModal = ({
                     {field.required && <span className="text-error"> *</span>}
                   </span>
                 </label>
-                <input
-                  type={field.type}
-                  className="input input-bordered"
-                  placeholder={field.placeholder}
-                  required={field.required}
-                  value={formData[field.name] || ""}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  disabled={isLoading || field.disabled}
-                />
+                {field.type === "switch" ? (
+                  <input
+                    type="checkbox"
+                    className="toggle toggle-bordered"
+                    checked={formData[field.name] || false}
+                    onChange={(e) => handleChange(field.name, e.target.checked)}
+                    disabled={isLoading || field.disabled}
+                  />
+                ) : (
+                  <input
+                    type={field.type}
+                    className="input input-bordered"
+                    placeholder={field.placeholder}
+                    required={field.required}
+                    value={formData[field.name] || ""}
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    disabled={isLoading || field.disabled}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -500,7 +510,7 @@ export default function Options() {
     setOptyParamModalOpen(true);
   };
 
-  const handleSaveOptyParam = async (data: { key: string; value: string }) => {
+  const handleSaveOptyParam = async (data: { key: string; value: boolean }) => {
     if (editingOptyParam) {
       await updateOptyParameter(editingOptyParam.id, data);
       showToast("OPTY 参数已更新");
@@ -891,7 +901,7 @@ export default function Options() {
                   <div key={param.id} className="card bg-base-100 shadow-sm">
                     <div className="card-body p-4">
                       <h3 className="font-bold">{param.key}</h3>
-                      <p>{param.value}</p>
+                      <p>{param.value ? "true" : "false"}</p>
                       <div className="card-actions justify-end">
                         <button
                           className="btn btn-sm btn-ghost"
@@ -1098,9 +1108,8 @@ export default function Options() {
           {
             name: "value",
             label: "参数值",
-            type: "text",
-            required: true,
-            placeholder: "请输入参数值",
+            type: "switch",
+            required: false,
           },
         ]}
         initialValues={editingOptyParam || undefined}
