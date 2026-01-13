@@ -28,6 +28,12 @@ interface CombinationWizardModalProps {
   uris: UriEntry[];
   tailParams: TailParameter[];
   optyParams: OptyParameter[];
+  onCreateAgent: (data: Agent) => Promise<void>;
+  onCreatePort: (data: Port) => Promise<void>;
+  onCreateUri: (data: UriEntry) => Promise<void>;
+  onCreateTailParam: (data: TailParameter) => Promise<void>;
+  onCreateOptyParam: (data: OptyParameter) => Promise<void>;
+  onRefreshData: () => Promise<void>;
 }
 
 type WizardStep = 1 | 2 | 3;
@@ -42,6 +48,12 @@ export default function CombinationWizardModal({
   uris,
   tailParams,
   optyParams,
+  onCreateAgent,
+  onCreatePort,
+  onCreateUri,
+  onCreateTailParam,
+  onCreateOptyParam,
+  onRefreshData,
 }: CombinationWizardModalProps) {
   // ===========================
   // 状态管理
@@ -65,6 +77,15 @@ export default function CombinationWizardModal({
   const [selectedOptyParamIds, setSelectedOptyParamIds] = useState<Set<string>>(
     new Set(),
   );
+
+  // 创建对话框状态
+  const [createDialogOpen, setCreateDialogOpen] = useState<{
+    type: "agent" | "port" | "uri" | "tail" | "opty" | null;
+  }>({ type: null });
+  const [isCreating, setIsCreating] = useState(false);
+
+  // 创建表单数据
+  const [createForm, setCreateForm] = useState<Record<string, any>>({});
 
   // ===========================
   // 初始化和重置
@@ -167,6 +188,86 @@ export default function CombinationWizardModal({
   };
 
   // ===========================
+  // 快速创建处理
+  // ===========================
+
+  const handleOpenCreateDialog = (
+    type: "agent" | "port" | "uri" | "tail" | "opty",
+  ) => {
+    setCreateForm({});
+    setCreateDialogOpen({ type });
+  };
+
+  const handleCloseCreateDialog = () => {
+    setCreateForm({});
+    setCreateDialogOpen({ type: null });
+  };
+
+  const handleCreate = async () => {
+    try {
+      setIsCreating(true);
+      const { type } = createDialogOpen;
+      if (!type) return;
+
+      let newItemId: string = generateId();
+
+      switch (type) {
+        case "agent":
+          newItemId = createForm.id;
+          await onCreateAgent({
+            id: newItemId,
+            username: createForm.username,
+          });
+          setSelectedAgentId(newItemId);
+          break;
+        case "port":
+          await onCreatePort({
+            id: newItemId,
+            port: createForm.port,
+            description: createForm.description,
+          });
+          setSelectedPortId(newItemId);
+          break;
+        case "uri":
+          await onCreateUri({
+            id: newItemId,
+            uri: createForm.uri,
+            description: createForm.description,
+          });
+          setSelectedUriId(newItemId);
+          break;
+        case "tail":
+          await onCreateTailParam({
+            id: newItemId,
+            key: createForm.key,
+            value: createForm.value,
+          });
+          setSelectedTailParamIds((prev) => new Set([...prev, newItemId]));
+          break;
+        case "opty":
+          await onCreateOptyParam({
+            id: newItemId,
+            key: createForm.key,
+            value: createForm.value,
+          });
+          setSelectedOptyParamIds((prev) => new Set([...prev, newItemId]));
+          break;
+      }
+
+      // 刷新数据
+      await onRefreshData();
+
+      // 关闭对话框
+      handleCloseCreateDialog();
+    } catch (error) {
+      console.error("Failed to create item:", error);
+      alert("创建失败，请重试");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  // ===========================
   // 步骤验证
   // ===========================
 
@@ -217,6 +318,14 @@ export default function CombinationWizardModal({
       <div className="form-control">
         <label className="label">
           <span className="label-text">Agent（用户名）</span>
+          <span className="label-text-alt">
+            <button
+              className="btn btn-xs btn-primary"
+              onClick={() => handleOpenCreateDialog("agent")}
+            >
+              + 添加
+            </button>
+          </span>
         </label>
         <select
           className="select select-bordered"
@@ -235,6 +344,14 @@ export default function CombinationWizardModal({
       <div className="form-control">
         <label className="label">
           <span className="label-text">端口</span>
+          <span className="label-text-alt">
+            <button
+              className="btn btn-xs btn-primary"
+              onClick={() => handleOpenCreateDialog("port")}
+            >
+              + 添加
+            </button>
+          </span>
         </label>
         <select
           className="select select-bordered"
@@ -253,6 +370,14 @@ export default function CombinationWizardModal({
       <div className="form-control">
         <label className="label">
           <span className="label-text">URI</span>
+          <span className="label-text-alt">
+            <button
+              className="btn btn-xs btn-primary"
+              onClick={() => handleOpenCreateDialog("uri")}
+            >
+              + 添加
+            </button>
+          </span>
         </label>
         <select
           className="select select-bordered"
@@ -279,7 +404,15 @@ export default function CombinationWizardModal({
 
       {/* Tail Parameters */}
       <div>
-        <h4 className="font-semibold mb-2">尾部参数</h4>
+        <div className="flex justify-between items-center mb-2">
+          <h4 className="font-semibold">尾部参数</h4>
+          <button
+            className="btn btn-xs btn-primary"
+            onClick={() => handleOpenCreateDialog("tail")}
+          >
+            + 添加
+          </button>
+        </div>
         {tailParams.length === 0 ? (
           <div className="text-sm opacity-50">暂无尾部参数数据</div>
         ) : (
@@ -304,7 +437,15 @@ export default function CombinationWizardModal({
 
       {/* OPTY Parameters */}
       <div>
-        <h4 className="font-semibold mb-2">OPTY 参数</h4>
+        <div className="flex justify-between items-center mb-2">
+          <h4 className="font-semibold">OPTY 参数</h4>
+          <button
+            className="btn btn-xs btn-primary"
+            onClick={() => handleOpenCreateDialog("opty")}
+          >
+            + 添加
+          </button>
+        </div>
         {optyParams.length === 0 ? (
           <div className="text-sm opacity-50">暂无 OPTY 参数数据</div>
         ) : (
@@ -422,6 +563,229 @@ export default function CombinationWizardModal({
       <form method="dialog" className="modal-backdrop">
         <button onClick={onClose}>close</button>
       </form>
+
+      {/* 创建对话框 */}
+      {createDialogOpen.type && (
+        <dialog open className="modal">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-4">
+              {createDialogOpen.type === "agent" && "添加 Agent"}
+              {createDialogOpen.type === "port" && "添加端口"}
+              {createDialogOpen.type === "uri" && "添加 URI"}
+              {createDialogOpen.type === "tail" && "添加尾部参数"}
+              {createDialogOpen.type === "opty" && "添加 OPTY 参数"}
+            </h3>
+
+            <div className="space-y-4">
+              {createDialogOpen.type === "agent" && (
+                <>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Agent ID *</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered"
+                      placeholder="请输入 Agent ID"
+                      value={createForm.id || ""}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, id: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">用户名 *</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered"
+                      placeholder="请输入用户名"
+                      value={createForm.username || ""}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          username: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              {createDialogOpen.type === "port" && (
+                <>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">端口号 *</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="input input-bordered"
+                      placeholder="请输入端口号"
+                      value={createForm.port || ""}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          port: Number(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">描述</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered"
+                      placeholder="描述（可选）"
+                      value={createForm.description || ""}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </>
+              )}
+
+              {createDialogOpen.type === "uri" && (
+                <>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">URI 地址 *</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered"
+                      placeholder="请输入 URI 地址，如 /api/v1/data"
+                      value={createForm.uri || ""}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, uri: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">描述</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered"
+                      placeholder="URI 用途说明（可选）"
+                      value={createForm.description || ""}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </>
+              )}
+
+              {createDialogOpen.type === "tail" && (
+                <>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">参数名 *</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered"
+                      placeholder="请输入参数名"
+                      value={createForm.key || ""}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, key: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">参数值 *</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered"
+                      placeholder="请输入参数值"
+                      value={createForm.value || ""}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, value: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              {createDialogOpen.type === "opty" && (
+                <>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">参数名 *</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered"
+                      placeholder="如 TIMEOUT（自动添加OPTY_前缀）"
+                      value={createForm.key || ""}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, key: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">参数值</span>
+                    </label>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-bordered"
+                      checked={createForm.value || false}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          value: e.target.checked,
+                        })
+                      }
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="modal-action">
+              <button
+                className="btn"
+                onClick={handleCloseCreateDialog}
+                disabled={isCreating}
+              >
+                取消
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleCreate}
+                disabled={isCreating}
+              >
+                {isCreating ? "创建中..." : "创建"}
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={handleCloseCreateDialog}>close</button>
+          </form>
+        </dialog>
+      )}
     </dialog>
   );
 }

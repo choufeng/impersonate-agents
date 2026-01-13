@@ -347,6 +347,38 @@ export default function Options() {
     setCombinations(data);
   };
 
+  // 刷新所有数据
+  const loadAllData = async () => {
+    await Promise.all([
+      loadAgents(),
+      loadPorts(),
+      loadUris(),
+      loadTailParameters(),
+      loadOptyParameters(),
+    ]);
+  };
+
+  // 创建包装函数（用于CombinationWizardModal）
+  const handleCreateAgent = async (data: Agent) => {
+    await createAgent(data);
+  };
+
+  const handleCreatePort = async (data: Port) => {
+    await createPort(data);
+  };
+
+  const handleCreateUri = async (data: UriEntry) => {
+    await createUri(data);
+  };
+
+  const handleCreateTailParam = async (data: TailParameter) => {
+    await createTailParameter(data);
+  };
+
+  const handleCreateOptyParam = async (data: OptyParameter) => {
+    await createOptyParameter(data);
+  };
+
   // ===========================
   // Toast 处理
   // ===========================
@@ -1126,6 +1158,12 @@ export default function Options() {
         uris={uris}
         tailParams={tailParams}
         optyParams={optyParams}
+        onCreateAgent={handleCreateAgent}
+        onCreatePort={handleCreatePort}
+        onCreateUri={handleCreateUri}
+        onCreateTailParam={handleCreateTailParam}
+        onCreateOptyParam={handleCreateOptyParam}
+        onRefreshData={loadAllData}
       />
 
       {/* 确认对话框 */}
