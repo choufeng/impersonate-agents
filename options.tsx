@@ -900,7 +900,7 @@ export default function Options() {
                 {optyParams.map((param) => (
                   <div key={param.id} className="card bg-base-100 shadow-sm">
                     <div className="card-body p-4">
-                      <h3 className="font-bold">{param.key}</h3>
+                      <h3 className="font-bold">OPTY_{param.key}</h3>
                       <p>{param.value ? "true" : "false"}</p>
                       <div className="card-actions justify-end">
                         <button
@@ -1103,7 +1103,7 @@ export default function Options() {
             label: "参数名",
             type: "text",
             required: true,
-            placeholder: "必须以 OPTY 开头，如 OPTY_TIMEOUT",
+            placeholder: "参数名，如 TIMEOUT（自动添加OPTY_前缀）",
           },
           {
             name: "value",

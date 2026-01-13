@@ -153,14 +153,15 @@ const buildParametersWithOverrides = (
     };
   });
 
-  // 获取 OPTY 参数
+  // 获取 OPTY 参数（构建URL时自动添加OPTY_前缀）
   const optyOverrides = optyParams.map((p) => {
-    const isModified = tempOverrides.has(p.key);
+    const keyWithPrefix = `OPTY_${p.key}`;
+    const isModified = tempOverrides.has(keyWithPrefix);
     const enabled = isModified
-      ? (tempOverrides.get(p.key) as boolean)
-      : p.value === "true";
+      ? (tempOverrides.get(keyWithPrefix) as boolean)
+      : p.value;
     return {
-      key: p.key,
+      key: keyWithPrefix,
       enabled,
       isModified,
     };

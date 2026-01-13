@@ -318,8 +318,10 @@ export default function CombinationWizardModal({
                   onChange={() => handleOptyParamToggle(param.id)}
                 />
                 <div className="flex-1">
-                  <div className="font-medium text-sm">{param.key}</div>
-                  <div className="text-xs opacity-70">{param.value}</div>
+                  <div className="font-medium text-sm">OPTY_{param.key}</div>
+                  <div className="text-xs opacity-70">
+                    {param.value ? "true" : "false"}
+                  </div>
                 </div>
               </div>
             ))}

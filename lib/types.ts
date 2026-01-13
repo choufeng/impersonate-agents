@@ -49,11 +49,11 @@ export interface TailParameter {
 
 /**
  * OPTY Parameter 数据模型
- * 存储以 OPTY 开头的参数键值对
+ * 存储以 OPTY 开头的参数键值对（在构建URL时自动添加OPTY_前缀）
  */
 export interface OptyParameter {
   id: string;
-  key: string; // Should start with "OPTY"
+  key: string; // 存储时不包含OPTY_前缀，构建URL时自动添加
   value: boolean;
 }
 

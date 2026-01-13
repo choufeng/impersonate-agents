@@ -252,10 +252,12 @@ export default function Popup() {
 
         // 判断是尾部参数还是 OPTY 参数
         if (key.startsWith("OPTY")) {
-          const param = allOptyParams.find((p) => p.key === key);
+          // OPTY参数需要去掉前缀才能匹配
+          const originalKey = key.replace(/^OPTY_/, "");
+          const param = allOptyParams.find((p) => p.key === originalKey);
           if (param) {
             await updateOptyParameter(param.id, {
-              value,
+              value: enabled,
             });
           }
         } else {
