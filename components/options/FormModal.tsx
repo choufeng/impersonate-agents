@@ -72,7 +72,7 @@ export default function FormModal({
                 ) : field.type === "number" ? (
                   <input
                     type="number"
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                     value={formData[field.name] || ""}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     placeholder={field.placeholder}
@@ -82,7 +82,7 @@ export default function FormModal({
                 ) : (
                   <input
                     type="text"
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                     value={formData[field.name] || ""}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     placeholder={field.placeholder}
@@ -112,9 +112,9 @@ export default function FormModal({
           </div>
         </form>
       </div>
-      <form method="dialog" className="modal-backdrop">
-        <button onClick={onClose}>close</button>
-      </form>
+      <div className="modal-backdrop" onClick={onClose}>
+        <button>close</button>
+      </div>
     </dialog>
   );
 }

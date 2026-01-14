@@ -154,9 +154,9 @@ export default function ImportConfirmDialog({
           </>
         )}
       </div>
-      <form method="dialog" className="modal-backdrop">
+      <div className="modal-backdrop" onClick={onCancel}>
         <button onClick={onCancel}>close</button>
-      </form>
+      </div>
     </dialog>
   );
 }

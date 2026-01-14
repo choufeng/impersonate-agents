@@ -35,9 +35,9 @@ export default function ConfirmDialog({
           </button>
         </div>
       </div>
-      <form method="dialog" className="modal-backdrop">
+      <div className="modal-backdrop" onClick={onCancel}>
         <button>close</button>
-      </form>
+      </div>
     </dialog>
   );
 }

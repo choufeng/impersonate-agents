@@ -560,9 +560,9 @@ export default function CombinationWizardModal({
           )}
         </div>
       </div>
-      <form method="dialog" className="modal-backdrop">
-        <button onClick={onClose}>close</button>
-      </form>
+      <div className="modal-backdrop" onClick={onClose}>
+        <button>close</button>
+      </div>
 
       {/* 创建对话框 */}
       {createDialogOpen.type && (
@@ -781,9 +781,9 @@ export default function CombinationWizardModal({
               </button>
             </div>
           </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={handleCloseCreateDialog}>close</button>
-          </form>
+          <div className="modal-backdrop" onClick={handleCloseCreateDialog}>
+            <button>close</button>
+          </div>
         </dialog>
       )}
     </dialog>
