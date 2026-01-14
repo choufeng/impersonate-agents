@@ -9,6 +9,7 @@ export interface Translations {
     optyParameters: string;
     combinations: string;
     settings: string;
+    combinationsGroup: string;
   };
 
   common: {
@@ -142,6 +143,7 @@ export const en: Translations = {
     optyParameters: "OPTY Parameters",
     combinations: "Combinations",
     settings: "Settings",
+    combinationsGroup: "Configuration Resources",
   },
 
   common: {
@@ -276,6 +278,7 @@ export const zh: Translations = {
     optyParameters: "OPTY 参数",
     combinations: "组合配置",
     settings: "设置",
+    combinationsGroup: "配置资源",
   },
 
   common: {

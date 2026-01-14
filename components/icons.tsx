@@ -14,6 +14,7 @@ import {
   Copy,
   UserCircle,
   ChevronRight,
+  ChevronDown,
   AlertCircle,
   CheckCircle,
   XCircle,
@@ -226,6 +227,26 @@ export const InfoIcon: React.FC<IconProps> = ({
 
 // 箭头图标
 export const ArrowRightIcon: React.FC<IconProps> = ({
+  className = "",
+  size = 20,
+}) => (
+  <IconWrapper className={className}>
+    <ChevronRight size={size} />
+  </IconWrapper>
+);
+
+// 向下箭头图标
+export const ChevronDownIcon: React.FC<IconProps> = ({
+  className = "",
+  size = 20,
+}) => (
+  <IconWrapper className={className}>
+    <ChevronDown size={size} />
+  </IconWrapper>
+);
+
+// 向右箭头图标
+export const ChevronRightIcon: React.FC<IconProps> = ({
   className = "",
   size = 20,
 }) => (
