@@ -52,6 +52,20 @@ import type {
   OptyParameter,
   Combination,
 } from "./lib/types";
+import {
+  navigationIcons,
+  ExportIcon,
+  ImportIcon,
+  EditIcon,
+  DeleteIcon,
+  CopyIcon,
+} from "./components/icons";
+
+// 动态渲染导航图标
+const renderNavIcon = (navKey: string, size: number = 20) => {
+  const IconComponent = navigationIcons[navKey as keyof typeof navigationIcons];
+  return IconComponent ? <IconComponent size={size} /> : null;
+};
 
 // ============================================================================
 // 子组件
@@ -961,37 +975,37 @@ export default function Options() {
           <ul>
             <li className={currentNav === "agents" ? "active" : ""}>
               <a onClick={() => setCurrentNavState("agents")}>
-                <span>👤</span>
+                {renderNavIcon("agents")}
                 <span>Agents</span>
               </a>
             </li>
             <li className={currentNav === "ports" ? "active" : ""}>
               <a onClick={() => setCurrentNavState("ports")}>
-                <span>🔌</span>
+                {renderNavIcon("ports")}
                 <span>端口</span>
               </a>
             </li>
             <li className={currentNav === "uris" ? "active" : ""}>
               <a onClick={() => setCurrentNavState("uris")}>
-                <span>🌐</span>
+                {renderNavIcon("uris")}
                 <span>URI</span>
               </a>
             </li>
             <li className={currentNav === "tail-parameters" ? "active" : ""}>
               <a onClick={() => setCurrentNavState("tail-parameters")}>
-                <span>⚙️</span>
+                {renderNavIcon("tail-parameters")}
                 <span>尾部参数</span>
               </a>
             </li>
             <li className={currentNav === "opty-parameters" ? "active" : ""}>
               <a onClick={() => setCurrentNavState("opty-parameters")}>
-                <span>🔧</span>
+                {renderNavIcon("opty-parameters")}
                 <span>OPTY 参数</span>
               </a>
             </li>
             <li className={currentNav === "combinations" ? "active" : ""}>
               <a onClick={() => setCurrentNavState("combinations")}>
-                <span>📦</span>
+                {renderNavIcon("combinations")}
                 <span>组合配置</span>
               </a>
             </li>
@@ -1005,10 +1019,12 @@ export default function Options() {
           <h1 className="text-2xl font-bold">配置管理</h1>
           <div className="flex gap-2">
             <button className="btn btn-primary btn-sm" onClick={handleExport}>
-              📤 导出配置
+              <ExportIcon size={16} className="mr-2" />
+              导出配置
             </button>
             <label className="btn btn-success btn-sm cursor-pointer">
-              📥 导入配置
+              <ImportIcon size={16} className="mr-2" />
+              导入配置
               <input
                 type="file"
                 accept=".json"
@@ -1049,7 +1065,7 @@ export default function Options() {
                           className="btn btn-ghost btn-sm"
                           onClick={() => handleEditAgent(agent)}
                         >
-                          编辑
+                          <EditIcon size={16} />
                         </button>
                         <button
                           className="btn btn-error btn-sm"
@@ -1101,7 +1117,7 @@ export default function Options() {
                           className="btn btn-ghost btn-sm"
                           onClick={() => handleEditPort(port)}
                         >
-                          编辑
+                          <EditIcon size={16} />
                         </button>
                         <button
                           className="btn btn-error btn-sm"
@@ -1149,7 +1165,7 @@ export default function Options() {
                           className="btn btn-sm btn-ghost"
                           onClick={() => handleEditUri(uri)}
                         >
-                          编辑
+                          <EditIcon size={16} />
                         </button>
                         <button
                           className="btn btn-sm btn-error"
@@ -1194,7 +1210,7 @@ export default function Options() {
                           className="btn btn-sm btn-ghost"
                           onClick={() => handleEditTailParam(param)}
                         >
-                          编辑
+                          <EditIcon size={16} />
                         </button>
                         <button
                           className="btn btn-sm btn-error"
@@ -1239,7 +1255,7 @@ export default function Options() {
                           className="btn btn-sm btn-ghost"
                           onClick={() => handleEditOptyParam(param)}
                         >
-                          编辑
+                          <EditIcon size={16} />
                         </button>
                         <button
                           className="btn btn-sm btn-error"
@@ -1298,7 +1314,7 @@ export default function Options() {
                             className="btn btn-sm btn-ghost"
                             onClick={() => handleEditCombination(combination)}
                           >
-                            编辑
+                            <EditIcon size={16} />
                           </button>
                           <button
                             className="btn btn-sm btn-outline"

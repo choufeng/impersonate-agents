@@ -16,6 +16,7 @@ import {
   getCurrentCombinationInitialized,
   setCurrentCombinationInitialized,
 } from "./lib/storage";
+import { SettingsIcon, SaveIcon, RocketIcon } from "./components/icons";
 import {
   buildParametersWithOverrides,
   executeRedirectFlow,
@@ -512,7 +513,7 @@ export default function Popup() {
           className="btn btn-sm btn-ghost"
           title="打开设置"
         >
-          ⚙️
+          <SettingsIcon size={16} />
         </button>
       </div>
 
@@ -619,14 +620,28 @@ export default function Popup() {
           }
           onClick={handleSave}
         >
-          {isLoading ? "保存中..." : "💾 保存配置"}
+          {isLoading ? (
+            "保存中..."
+          ) : (
+            <>
+              <SaveIcon size={16} className="mr-2" />
+              保存配置
+            </>
+          )}
         </button>
         <button
           className="btn btn-success flex-1"
           disabled={!selectedCombination || isLoading}
           onClick={handleRedirect}
         >
-          {isLoading ? "跳转中..." : "🚀 跳转"}
+          {isLoading ? (
+            "跳转中..."
+          ) : (
+            <>
+              <RocketIcon size={16} className="mr-2" />
+              跳转
+            </>
+          )}
         </button>
       </div>
     </div>
