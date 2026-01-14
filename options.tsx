@@ -961,7 +961,7 @@ export default function Options() {
 
   return (
     <div
-      data-theme="abyss"
+      data-theme="corporate"
       className="flex h-screen"
       style={{ fontFamily: "Arial, sans-serif" }}
     >

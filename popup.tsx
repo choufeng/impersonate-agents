@@ -491,7 +491,10 @@ export default function Popup() {
   // ===========================
 
   return (
-    <div data-theme="abyss" className="w-[360px] h-[600px] p-4 flex flex-col">
+    <div
+      data-theme="corporate"
+      className="w-[360px] h-[600px] p-4 flex flex-col"
+    >
       {/* 固定顶部：组合选择和设置 */}
       <div className="flex gap-2 mb-4">
         <div className="flex-1">
