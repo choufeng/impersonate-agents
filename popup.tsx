@@ -16,7 +16,6 @@ import {
   getCurrentCombinationInitialized,
   setCurrentCombinationInitialized,
 } from "./lib/storage";
-import { SettingsIcon, SaveIcon, RocketIcon } from "./components/icons";
 import {
   buildParametersWithOverrides,
   executeRedirectFlow,
@@ -30,6 +29,10 @@ import type {
   Combination,
   TempOverride,
 } from "./lib/types";
+import CombinationSelector from "./components/popup/CombinationSelector";
+import BasicInfoCard from "./components/popup/BasicInfoCard";
+import ParameterSection from "./components/popup/ParameterSection";
+import ActionButtons from "./components/popup/ActionButtons";
 
 export default function Popup() {
   // ===========================
@@ -48,255 +51,167 @@ export default function Popup() {
   const [tempValueOverrides, setTempValueOverrides] = useState<
     Map<string, string>
   >(new Map());
-  const [params, setParams] = useState<TempOverride[]>([]);
   const [agent, setAgent] = useState<Agent | null>(null);
   const [port, setPort] = useState<Port | null>(null);
   const [uri, setUri] = useState<UriEntry | null>(null);
+  const [params, setParams] = useState<TempOverride[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSaveToast, setShowSaveToast] = useState(false);
 
   // ===========================
-  // 初始化：加载数据
+  // 初始化数据加载
   // ===========================
 
   useEffect(() => {
-    // 加载所有正式组合
-    loadCombinations();
-    // 加载最后选择的组合 ID
-    loadLastSelectedCombinationId();
+    loadInitialData();
   }, []);
 
-  // ===========================
-  // 监控组合变化，加载参数
-  // ===========================
-
   useEffect(() => {
-    if (!selectedCombinationId) {
+    if (selectedCombinationId) {
+      loadCombinationData(selectedCombinationId);
+      loadInitialData();
+    } else {
       setSelectedCombination(null);
-      setParams([]);
       setAgent(null);
       setPort(null);
       setUri(null);
-      return;
+      setParams([]);
+      setTempOverrides(new Map());
+      setTempValueOverrides(new Map());
     }
-
-    // 加载选中的组合详情
-    loadCombinationDetails(selectedCombinationId);
   }, [selectedCombinationId]);
 
-  // ===========================
-  // 监控临时修改，更新参数列表
-  // ===========================
+  const loadInitialData = async () => {
+    try {
+      const allCombinations = await getFormalCombinations();
+      setCombinations(allCombinations);
 
-  useEffect(() => {
-    if (!selectedCombination) {
-      return;
-    }
-
-    const updateParameters = async () => {
-      const allTailParams = await getTailParameters();
-      const allOptyParams = await getOptyParameters();
-
-      const tailParams = allTailParams.filter((p) =>
-        selectedCombination.tailParameterIds.includes(p.id),
-      );
-      const optyParams = allOptyParams.filter((p) =>
-        selectedCombination.optyParameterIds.includes(p.id),
-      );
-
-      const allParams = buildParametersWithOverrides(
-        selectedCombination,
-        tailParams,
-        optyParams,
-        tempOverrides,
-        tempValueOverrides,
-      );
-
-      setParams(allParams);
-    };
-
-    updateParameters();
-  }, [tempOverrides, tempValueOverrides]);
-
-  // ===========================
-  // 数据加载函数
-  // ===========================
-
-  const loadCombinations = async () => {
-    const data = await getFormalCombinations();
-    setCombinations(data);
-  };
-
-  const loadLastSelectedCombinationId = async () => {
-    const lastId = await getLastSelectedCombinationId();
-    if (lastId) {
-      setSelectedCombinationId(lastId);
+      const lastSelectedId = await getLastSelectedCombinationId();
+      if (lastSelectedId && !selectedCombinationId) {
+        setSelectedCombinationId(lastSelectedId);
+      }
+    } catch (error) {
+      console.error("Failed to load initial data:", error);
     }
   };
 
-  const loadCombinationDetails = async (combinationId: string) => {
-    const combination = await getCombinationById(combinationId);
-    if (!combination) {
-      console.error("Combination not found:", combinationId);
-      return;
+  const loadCombinationData = async (combinationId: string) => {
+    try {
+      setIsLoading(true);
+
+      // 加载组合基本信息
+      const combination = await getCombinationById(combinationId);
+      if (combination) {
+        setSelectedCombination(combination);
+
+        // 加载关联数据
+        const [agentData, portData, uriData] = await Promise.all([
+          combination.agentId ? getAgentById(combination.agentId) : null,
+          combination.portId ? getPortById(combination.portId) : null,
+          combination.uriId ? getUriById(combination.uriId) : null,
+        ]);
+
+        setAgent(agentData);
+        setPort(portData);
+        setUri(uriData);
+
+        // 加载参数并构建TempOverride
+        const [tailParams, optyParams] = await Promise.all([
+          getTailParameters(),
+          getOptyParameters(),
+        ]);
+
+        const combinedParams: TempOverride[] = [
+          ...tailParams.map((param) => ({
+            key: param.key,
+            value: param.value,
+            isOpty: false,
+            enabled: true,
+            isModified: false,
+          })),
+          ...optyParams.map((param) => ({
+            key: `OPTY_${param.key}`,
+            value: param.value.toString(),
+            isOpty: true,
+            enabled: param.value,
+            isModified: false,
+          })),
+        ];
+
+        setParams(combinedParams);
+
+        // 清除临时修改
+        setTempOverrides(new Map());
+        setTempValueOverrides(new Map());
+      }
+    } catch (error) {
+      console.error("Failed to load combination data:", error);
+    } finally {
+      setIsLoading(false);
     }
-
-    setSelectedCombination(combination);
-
-    // 清空临时修改
-    setTempOverrides(new Map());
-    setTempValueOverrides(new Map());
-
-    // 加载配置数据
-    await loadCombinationData(combination);
-
-    // 加载参数
-    await loadParameters(combination);
-  };
-
-  const loadCombinationData = async (combination: Combination) => {
-    // 加载 Agent
-    if (combination.agentId) {
-      const agentData = await getAgentById(combination.agentId);
-      setAgent(agentData);
-    } else {
-      setAgent(null);
-    }
-
-    // 加载 Port
-    if (combination.portId) {
-      const portData = await getPortById(combination.portId);
-      setPort(portData);
-    } else {
-      setPort(null);
-    }
-
-    // 加载 URI
-    if (combination.uriId) {
-      const uriData = await getUriById(combination.uriId);
-      setUri(uriData);
-    } else {
-      setUri(null);
-    }
-  };
-
-  const loadParameters = async (combination: Combination) => {
-    // 加载所有尾部参数
-    const allTailParams = await getTailParameters();
-
-    // 加载所有 OPTY 参数
-    const allOptyParams = await getOptyParameters();
-
-    // 筛选组合中的参数
-    const tailParams = allTailParams.filter((p) =>
-      combination.tailParameterIds.includes(p.id),
-    );
-    const optyParams = allOptyParams.filter((p) =>
-      combination.optyParameterIds.includes(p.id),
-    );
-
-    // 构建参数列表
-    const allParams = buildParametersWithOverrides(
-      combination,
-      tailParams,
-      optyParams,
-      tempOverrides,
-      tempValueOverrides,
-    );
-
-    setParams(allParams);
   };
 
   // ===========================
   // 事件处理函数
   // ===========================
 
-  /**
-   * 组合切换处理
-   */
-  const handleCombinationChange = async (newId: string) => {
-    if (newId === "") {
-      setSelectedCombinationId(null);
-      return;
+  const handleCombinationChange = async (value: string) => {
+    setSelectedCombinationId(value || null);
+    if (value) {
+      await setLastSelectedCombinationId(value);
     }
-
-    setSelectedCombinationId(newId);
-
-    // 清空临时修改
-    setTempOverrides(new Map());
-    setTempValueOverrides(new Map());
-
-    // 保存最后选择的组合 ID
-    await setLastSelectedCombinationId(newId);
-
-    // 清空初始化标记（下次跳转时需要 impersonate）
-    await setCurrentCombinationInitialized(null);
   };
 
-  /**
-   * 参数 Toggle 切换处理（临时修改 - OPTY 参数）
-   */
-  const handleToggleChange = (key: string, enabled: boolean) => {
-    // 获取参数的原始值
-    const originalParam = params.find((p) => p.key === key);
-    if (!originalParam) return;
-
-    // 如果切换后的值等于原始值，则从 Map 中移除（恢复默认）
-    // 否则，添加到 Map 中
-    setTempOverrides((prev) => {
-      const newMap = new Map(prev);
-      if (enabled === (originalParam.enabled === true)) {
-        newMap.delete(key);
-      } else {
-        newMap.set(key, enabled);
-      }
-      return newMap;
-    });
-  };
-
-  /**
-   * 参数值修改处理（临时修改 - Tail 参数）
-   */
   const handleValueChange = (key: string, value: string) => {
-    // 获取参数的原始值
-    const originalParam = params.find((p) => p.key === key);
-    if (!originalParam) return;
+    const newOverrides = new Map(tempValueOverrides);
+    newOverrides.set(key, value);
+    setTempValueOverrides(newOverrides);
 
-    // 如果修改后的值等于原始值，则从 Map 中移除（恢复默认）
-    // 否则，添加到 Map 中
-    setTempValueOverrides((prev) => {
-      const newMap = new Map(prev);
-      if (value === originalParam.value) {
-        newMap.delete(key);
-      } else {
-        newMap.set(key, value);
-      }
-      return newMap;
-    });
+    setParams((prevParams) =>
+      prevParams.map((param) =>
+        param.key === key ? { ...param, isModified: true } : param,
+      ),
+    );
   };
 
-  /**
-   * 重置单个参数（恢复原始值）
-   */
+  const handleToggleChange = (key: string, enabled: boolean) => {
+    const newOverrides = new Map(tempOverrides);
+    newOverrides.set(key, enabled);
+    setTempOverrides(newOverrides);
+
+    setParams((prevParams) =>
+      prevParams.map((param) =>
+        param.key === key ? { ...param, isModified: true } : param,
+      ),
+    );
+  };
+
   const handleResetParameter = (key: string) => {
     setTempOverrides((prev) => {
-      const newMap = new Map(prev);
-      newMap.delete(key);
-      return newMap;
+      const newOverrides = new Map(prev);
+      newOverrides.delete(key);
+      return newOverrides;
     });
+
     setTempValueOverrides((prev) => {
-      const newMap = new Map(prev);
-      newMap.delete(key);
-      return newMap;
+      const newOverrides = new Map(prev);
+      newOverrides.delete(key);
+      return newOverrides;
     });
+
+    setParams((prevParams) =>
+      prevParams.map((param) =>
+        param.key === key ? { ...param, isModified: false } : param,
+      ),
+    );
   };
 
-  /**
-   * 重置所有参数（恢复原始值）
-   */
   const handleResetAllParameters = () => {
     setTempOverrides(new Map());
     setTempValueOverrides(new Map());
+    setParams((prevParams) =>
+      prevParams.map((param) => ({ ...param, isModified: false })),
+    );
   };
 
   /**
@@ -396,7 +311,7 @@ export default function Popup() {
         agent: agent!,
         port,
         uri: uri!,
-        params: params,
+        params,
         needImpersonate,
       });
 
@@ -417,236 +332,54 @@ export default function Popup() {
   };
 
   // ===========================
-  // 渲染函数
-  // ===========================
-
-  const renderParameterRow = (param: TempOverride) => {
-    const isOpty = param.isOpty;
-
-    return (
-      <div
-        key={param.key}
-        className="flex items-center justify-between p-2 hover:bg-base-200 rounded"
-      >
-        <span className="text-sm w-1/3 truncate" title={param.key}>
-          {param.key}
-        </span>
-        <div className="flex items-center gap-2 flex-1">
-          {isOpty ? (
-            <>
-              {param.isModified && (
-                <button
-                  className="text-xs btn btn-xs btn-ghost"
-                  onClick={() => handleResetParameter(param.key)}
-                  title="恢复原始值"
-                >
-                  ↩️
-                </button>
-              )}
-              <input
-                type="checkbox"
-                className="toggle toggle-sm toggle-primary"
-                checked={param.enabled}
-                onChange={(e) =>
-                  handleToggleChange(param.key, e.target.checked)
-                }
-              />
-            </>
-          ) : (
-            <>
-              <input
-                type="text"
-                className="input input-xs input-bordered flex-1"
-                defaultValue={param.value || ""}
-                placeholder="输入值"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const input = e.target as HTMLInputElement;
-                    handleValueChange(param.key, input.value);
-                    input.blur();
-                  }
-                }}
-                onBlur={(e) => {
-                  handleValueChange(param.key, e.target.value);
-                }}
-              />
-              {param.isModified && (
-                <button
-                  className="text-xs btn btn-xs btn-ghost"
-                  onClick={() => handleResetParameter(param.key)}
-                  title="恢复原始值"
-                >
-                  ↩️
-                </button>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // ===========================
   // 主渲染
   // ===========================
 
   return (
     <div
       data-theme="corporate"
-      className="w-[360px] h-[600px] p-4 flex flex-col"
+      className="w-[360px] h-[600px] p-4 flex flex-col bg-base-300"
     >
-      {/* 固定顶部：组合选择和设置 */}
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1">
-          <select
-            className="select select-bordered w-full"
-            value={selectedCombinationId ?? ""}
-            onChange={(e) => handleCombinationChange(e.target.value)}
-          >
-            <option value="">选择配置...</option>
-            {combinations.map((combo) => (
-              <option key={combo.id} value={combo.id}>
-                {combo.title}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button
-          onClick={openOptions}
-          className="btn btn-sm btn-ghost"
-          title="打开设置"
-        >
-          <SettingsIcon size={16} />
-        </button>
-      </div>
+      <CombinationSelector
+        combinations={combinations}
+        selectedCombinationId={selectedCombinationId}
+        onCombinationChange={handleCombinationChange}
+      />
 
-      {/* 配置详情 */}
       {selectedCombination && (
         <div className="space-y-4 flex-1 overflow-auto">
-          {/* 基础信息（只读展示） */}
-          <div className="card bg-base-100 shadow-sm">
-            <div className="card-body p-4">
-              <h3 className="font-bold mb-2">基础信息</h3>
+          <BasicInfoCard agent={agent} port={port} uri={uri} />
 
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-base-content/70">Agent:</span>
-                  <span className="font-medium">
-                    {agent?.username || "未选择"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-base-content/70">Port:</span>
-                  <span className="font-medium">
-                    {port?.port ? port.port.toString() : "未选择"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-base-content/70">URI:</span>
-                  <span
-                    className="font-medium truncate"
-                    style={{ maxWidth: "200px" }}
-                    title={uri?.uri || ""}
-                  >
-                    {uri?.uri || "未选择"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ParameterSection
+            title="尾部参数"
+            params={params.filter((p) => !p.isOpty)}
+            tempOverrides={tempOverrides}
+            tempValueOverrides={tempValueOverrides}
+            onValueChange={handleValueChange}
+            onToggleChange={handleToggleChange}
+            onResetParameter={handleResetParameter}
+            onResetAllParameters={handleResetAllParameters}
+          />
 
-          {/* 尾部参数（可临时调整） */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold">尾部参数</h3>
-              {tempValueOverrides.size > 0 && (
-                <button
-                  className="text-xs btn btn-xs btn-ghost text-warning"
-                  onClick={handleResetAllParameters}
-                >
-                  重置全部
-                </button>
-              )}
-            </div>
-            <div className="space-y-1">
-              {params.filter((p) => !p.isOpty).map(renderParameterRow)}
-            </div>
-          </div>
-
-          {/* OPTY 参数（可临时调整） */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold">OPTY 参数</h3>
-              {tempOverrides.size > 0 && (
-                <button
-                  className="text-xs btn btn-xs btn-ghost text-warning"
-                  onClick={handleResetAllParameters}
-                >
-                  重置全部
-                </button>
-              )}
-            </div>
-            <div className="space-y-1">
-              {params.filter((p) => p.isOpty).map(renderParameterRow)}
-            </div>
-          </div>
+          <ParameterSection
+            title="OPTY 参数"
+            params={params.filter((p) => p.isOpty)}
+            tempOverrides={tempOverrides}
+            tempValueOverrides={tempValueOverrides}
+            onValueChange={handleValueChange}
+            onToggleChange={handleToggleChange}
+            onResetParameter={handleResetParameter}
+            onResetAllParameters={handleResetAllParameters}
+          />
         </div>
       )}
 
-      {/* 保存成功提示 */}
-      {showSaveToast && (
-        <div role="alert" className="alert alert-success">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 shrink-0 stroke-current"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>配置已保存</span>
-        </div>
-      )}
-
-      {/* 固定底部：按钮 */}
-      <div className="flex gap-2 mt-4">
-        <button
-          className="btn btn-primary flex-1"
-          disabled={
-            (tempOverrides.size === 0 && tempValueOverrides.size === 0) ||
-            isLoading
-          }
-          onClick={handleSave}
-        >
-          {isLoading ? (
-            "保存中..."
-          ) : (
-            <>
-              <SaveIcon size={16} className="mr-2" />
-              保存配置
-            </>
-          )}
-        </button>
-        <button
-          className="btn btn-success flex-1"
-          disabled={!selectedCombination || isLoading}
-          onClick={handleRedirect}
-        >
-          {isLoading ? (
-            "跳转中..."
-          ) : (
-            <>
-              <RocketIcon size={16} className="mr-2" />
-              跳转
-            </>
-          )}
-        </button>
-      </div>
+      <ActionButtons
+        selectedCombination={!!selectedCombination}
+        isLoading={isLoading}
+        onRedirect={handleRedirect}
+        onOpenOptions={openOptions}
+      />
     </div>
   );
 }
