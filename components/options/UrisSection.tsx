@@ -1,6 +1,7 @@
 import type { UriEntry } from "../../lib/types";
-import { EditIcon } from "../icons";
+import { EditIcon, DeleteIcon } from "../icons";
 import { DataList } from "./DataList";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface UrisSectionProps {
   uris: UriEntry[];
@@ -15,12 +16,14 @@ export default function UrisSection({
   onEdit,
   onDelete,
 }: UrisSectionProps) {
+  const { t } = useI18n();
+
   return (
     <DataList
       data={uris}
       columns={[
-        { key: "uri", label: "URI", className: "font-mono text-sm" },
-        { key: "description", label: "描述" },
+        { key: "uri", label: t("uris.uri"), className: "font-mono text-sm" },
+        { key: "description", label: t("uris.description") },
       ]}
       actions={[
         {
@@ -29,14 +32,14 @@ export default function UrisSection({
           onClick: onEdit,
         },
         {
-          label: "删除",
+          label: t("common.delete"),
           className: "text-error",
           onClick: onDelete,
         },
       ]}
       onAdd={onAdd}
-      addLabel="添加 URI"
-      emptyMessage="暂无 URI 数据"
+      addLabel={t("uris.addUri")}
+      emptyMessage={t("uris.noData")}
     />
   );
 }

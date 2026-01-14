@@ -1,7 +1,8 @@
 import type { Combination } from "../../lib/types";
 import { isDraft } from "../../lib/types";
-import { EditIcon, CopyIcon } from "../icons";
+import { EditIcon, CopyIcon, DeleteIcon } from "../icons";
 import { DataList } from "./DataList";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface CombinationsSectionProps {
   combinations: Combination[];
@@ -18,23 +19,31 @@ export default function CombinationsSection({
   onCopy,
   onDelete,
 }: CombinationsSectionProps) {
+  const { t } = useI18n();
+
   return (
     <DataList
       data={combinations}
       columns={[
         {
           key: "title",
-          label: "组合名称",
+          label: t("combinations.combinationName"),
           render: (c) => (
             <span className="flex items-center gap-2">
               {c.title}
               {isDraft(c) && (
-                <span className="badge badge-warning badge-xs">草稿</span>
+                <span className="badge badge-warning badge-xs">
+                  {t("combinations.draft")}
+                </span>
               )}
             </span>
           ),
         },
-        { key: "agentId", label: "Agent ID", className: "text-sm" },
+        {
+          key: "agentId",
+          label: t("combinations.agentId"),
+          className: "text-sm",
+        },
       ]}
       actions={[
         {
@@ -43,19 +52,19 @@ export default function CombinationsSection({
           onClick: onEdit,
         },
         {
-          label: "复制",
+          label: t("common.copy"),
           icon: <CopyIcon size={14} />,
           onClick: onCopy,
         },
         {
-          label: "删除",
+          label: t("common.delete"),
           className: "text-error",
           onClick: onDelete,
         },
       ]}
       onAdd={onAdd}
-      addLabel="创建组合"
-      emptyMessage="暂无组合配置"
+      addLabel={t("combinations.createCombination")}
+      emptyMessage={t("combinations.noData")}
     />
   );
 }

@@ -3,17 +3,14 @@ import "./options.css";
 import CombinationWizardModal from "./components/CombinationWizardModal";
 import {
   getAgents,
-  getAgentById,
   createAgent,
   updateAgent,
   deleteAgent,
   getPorts,
-  getPortById,
   createPort,
   updatePort,
   deletePort,
   getUris,
-  getUriById,
   createUri,
   updateUri,
   deleteUri,
@@ -26,7 +23,6 @@ import {
   updateOptyParameter,
   deleteOptyParameter,
   getCombinations,
-  getCombinationById,
   createCombination,
   updateCombination,
   deleteCombination,
@@ -45,7 +41,7 @@ import type {
   OptyParameter,
   Combination,
 } from "./lib/types";
-import Header from "./components/options/Header";
+import { I18nProvider, useI18n } from "./lib/I18nProvider";
 import Sidebar from "./components/options/Sidebar";
 import AgentsSection from "./components/options/AgentsSection";
 import PortsSection from "./components/options/PortsSection";
@@ -53,12 +49,14 @@ import UrisSection from "./components/options/UrisSection";
 import TailParametersSection from "./components/options/TailParametersSection";
 import OptyParametersSection from "./components/options/OptyParametersSection";
 import CombinationsSection from "./components/options/CombinationsSection";
+import SettingsSection from "./components/options/SettingsSection";
 import FormModal from "./components/options/FormModal";
 import ConfirmDialog from "./components/options/ConfirmDialog";
 import Toast from "./components/options/Toast";
-import ImportConfirmDialog from "./components/options/ImportConfirmDialog";
 
-export default function Options() {
+function OptionsContent() {
+  const { t } = useI18n();
+
   const [currentNav, setCurrentNav] = useState<
     | "agents"
     | "ports"
@@ -66,6 +64,7 @@ export default function Options() {
     | "tail-parameters"
     | "opty-parameters"
     | "combinations"
+    | "settings"
   >("agents");
 
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -113,7 +112,6 @@ export default function Options() {
   });
 
   const [importConfirmOpen, setImportConfirmOpen] = useState(false);
-  const [importFile, setImportFile] = useState<File | null>(null);
   const [importConflicts, setImportConflicts] =
     useState<ImportConflictResult | null>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -201,10 +199,10 @@ export default function Options() {
   const handleSaveAgent = async (data: Agent) => {
     if (editingAgent) {
       await updateAgent(editingAgent.id, data);
-      showToast("Agent 已更新");
+      showToast(t("toast.agentUpdated"));
     } else {
       await createAgent(data);
-      showToast("Agent 已创建");
+      showToast(t("toast.agentCreated"));
     }
     await loadAgents();
     setAgentModalOpen(false);
@@ -231,10 +229,10 @@ export default function Options() {
   }) => {
     if (editingPort) {
       await updatePort(editingPort.id, data);
-      showToast("端口已更新");
+      showToast(t("toast.portUpdated"));
     } else {
       await createPort(data);
-      showToast("端口已创建");
+      showToast(t("toast.portCreated"));
     }
     await loadPorts();
     setPortModalOpen(false);
@@ -262,10 +260,10 @@ export default function Options() {
   const handleSaveUri = async (data: { uri: string; description?: string }) => {
     if (editingUri) {
       await updateUri(editingUri.id, data);
-      showToast("URI 已更新");
+      showToast(t("toast.uriUpdated"));
     } else {
       await createUri(data);
-      showToast("URI 已创建");
+      showToast(t("toast.uriCreated"));
     }
     await loadUris();
     setUriModalOpen(false);
@@ -289,10 +287,10 @@ export default function Options() {
   const handleSaveTailParam = async (data: { key: string; value: string }) => {
     if (editingTailParam) {
       await updateTailParameter(editingTailParam.id, data);
-      showToast("尾部参数已更新");
+      showToast(t("toast.tailParamUpdated"));
     } else {
       await createTailParameter(data);
-      showToast("尾部参数已创建");
+      showToast(t("toast.tailParamCreated"));
     }
     await loadTailParameters();
     setTailParamModalOpen(false);
@@ -320,10 +318,10 @@ export default function Options() {
   const handleSaveOptyParam = async (data: { key: string; value: boolean }) => {
     if (editingOptyParam) {
       await updateOptyParameter(editingOptyParam.id, data);
-      showToast("OPTY 参数已更新");
+      showToast(t("toast.optyParamUpdated"));
     } else {
       await createOptyParameter(data);
-      showToast("OPTY 参数已创建");
+      showToast(t("toast.optyParamCreated"));
     }
     await loadOptyParameters();
     setOptyParamModalOpen(false);
@@ -360,7 +358,7 @@ export default function Options() {
           optyParameterIds: data.optyParameterIds,
           updatedAt: getCurrentTimestamp(),
         });
-        showToast("组合已更新");
+        showToast(t("toast.combinationUpdated"));
       } else {
         await createCombination({
           title: data.title,
@@ -370,19 +368,19 @@ export default function Options() {
           tailParameterIds: data.tailParameterIds,
           optyParameterIds: data.optyParameterIds,
         });
-        showToast("组合已创建");
+        showToast(t("toast.combinationCreated"));
       }
       await loadCombinations();
       setCombinationModalOpen(false);
     } catch (error) {
       console.error("Failed to save combination:", error);
-      showToast("保存失败", "error");
+      showToast(t("toast.error"), "error");
     }
   };
 
   const handleCopyCombination = async (combination: Combination) => {
     await copyCombination(combination);
-    showToast("组合已复制", "success");
+    showToast(t("toast.combinationCopied"));
     await loadCombinations();
   };
 
@@ -420,13 +418,13 @@ export default function Options() {
           break;
       }
 
-      showToast("已删除", "success");
+      showToast(t("toast.deleted"));
       await loadData();
       setDeleteConfirmOpen(false);
       setItemToDelete(null);
     } catch (error) {
       console.error("Failed to delete:", error);
-      showToast("删除失败", "error");
+      showToast(t("toast.deleteFailed"), "error");
     }
   };
 
@@ -447,10 +445,10 @@ export default function Options() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast("配置已导出", "success");
+      showToast(t("toast.exported"));
     } catch (error) {
       console.error("Export failed:", error);
-      showToast("导出失败", "error");
+      showToast(t("toast.exportFailed"), "error");
     }
   };
 
@@ -463,19 +461,16 @@ export default function Options() {
       const data = JSON.parse(text);
 
       if (!data.version || !data.data) {
-        throw new Error("无效的配置文件格式");
+        throw new Error("Invalid config format");
       }
 
       setImportedData(data.data);
-      setImportFile(file);
-
       const conflicts = await detectImportConflicts(data.data);
       setImportConflicts(conflicts);
-
       setImportConfirmOpen(true);
     } catch (error) {
       console.error("File parsing failed:", error);
-      showToast("文件解析失败", "error");
+      showToast(t("toast.fileParseFailed"), "error");
     }
 
     e.target.value = "";
@@ -483,7 +478,6 @@ export default function Options() {
 
   const handleCancelImport = () => {
     setImportConfirmOpen(false);
-    setImportFile(null);
     setImportedData(null);
     setImportConflicts(null);
   };
@@ -494,12 +488,12 @@ export default function Options() {
     try {
       setIsImporting(true);
       await importData(importedData, false);
-      showToast("导入成功（跳过冲突）", "success");
+      showToast(t("settings.importSuccessSkip"));
       await loadData();
       handleCancelImport();
     } catch (error) {
       console.error("Import failed:", error);
-      showToast("导入失败", "error");
+      showToast(t("settings.importFailed"), "error");
     } finally {
       setIsImporting(false);
     }
@@ -511,12 +505,12 @@ export default function Options() {
     try {
       setIsImporting(true);
       await importData(importedData, true);
-      showToast("导入成功（覆盖冲突）", "success");
+      showToast(t("settings.importSuccessOverwrite"));
       await loadData();
       handleCancelImport();
     } catch (error) {
       console.error("Import failed:", error);
-      showToast("导入失败", "error");
+      showToast(t("settings.importFailed"), "error");
     } finally {
       setIsImporting(false);
     }
@@ -599,6 +593,19 @@ export default function Options() {
             onDelete={handleDeleteCombination}
           />
         );
+      case "settings":
+        return (
+          <SettingsSection
+            onExport={handleExport}
+            onImport={handleFileSelect}
+            importConflicts={importConflicts}
+            isImporting={isImporting}
+            onCancelImport={handleCancelImport}
+            onSkipConflicts={handleImportSkipConflicts}
+            onOverwriteConflicts={handleImportOverwriteConflicts}
+            importConfirmOpen={importConfirmOpen}
+          />
+        );
       default:
         return null;
     }
@@ -613,29 +620,31 @@ export default function Options() {
       <Sidebar currentNav={currentNav} onNavigate={setCurrentNav} />
 
       <main className="flex-1 ml-64 p-6 overflow-auto">
-        <Header onExport={handleExport} onImport={handleFileSelect} />
+        {currentNav !== "settings" && (
+          <h1 className="text-2xl font-bold mb-6">{t("header.title")}</h1>
+        )}
         {renderSection()}
       </main>
 
       <FormModal
         isOpen={agentModalOpen}
         onClose={() => setAgentModalOpen(false)}
-        title={editingAgent ? "编辑 Agent" : "添加 Agent"}
+        title={editingAgent ? t("agents.edit") : t("agents.add")}
         onSubmit={handleSaveAgent}
         fields={[
           {
             name: "id",
-            label: "Agent ID",
+            label: t("agents.agentId"),
             type: "text",
             required: true,
-            placeholder: "请输入 Agent ID",
+            placeholder: t("agents.agentId"),
           },
           {
             name: "username",
-            label: "用户名",
+            label: t("agents.username"),
             type: "text",
             required: true,
-            placeholder: "请输入用户名",
+            placeholder: t("agents.username"),
           },
         ]}
         initialValues={editingAgent || undefined}
@@ -644,22 +653,22 @@ export default function Options() {
       <FormModal
         isOpen={portModalOpen}
         onClose={() => setPortModalOpen(false)}
-        title={editingPort ? "编辑端口" : "添加端口"}
+        title={editingPort ? t("ports.edit") : t("ports.add")}
         onSubmit={handleSavePort}
         fields={[
           {
             name: "port",
-            label: "端口号",
+            label: t("ports.port"),
             type: "number",
             required: true,
-            placeholder: "请输入端口号，如 8080",
+            placeholder: t("ports.port"),
           },
           {
             name: "description",
-            label: "描述说明",
+            label: t("ports.description"),
             type: "text",
             required: false,
-            placeholder: "端口用途说明（可选）",
+            placeholder: "",
           },
         ]}
         initialValues={editingPort || undefined}
@@ -668,22 +677,22 @@ export default function Options() {
       <FormModal
         isOpen={uriModalOpen}
         onClose={() => setUriModalOpen(false)}
-        title={editingUri ? "编辑 URI" : "添加 URI"}
+        title={editingUri ? t("uris.edit") : t("uris.add")}
         onSubmit={handleSaveUri}
         fields={[
           {
             name: "uri",
-            label: "URI",
+            label: t("uris.uri"),
             type: "text",
             required: true,
-            placeholder: "请输入 URI，如 /api/v1/data",
+            placeholder: t("uris.uri"),
           },
           {
             name: "description",
-            label: "描述说明",
+            label: t("uris.description"),
             type: "text",
             required: false,
-            placeholder: "URI 用途说明（可选）",
+            placeholder: "",
           },
         ]}
         initialValues={editingUri || undefined}
@@ -692,22 +701,24 @@ export default function Options() {
       <FormModal
         isOpen={tailParamModalOpen}
         onClose={() => setTailParamModalOpen(false)}
-        title={editingTailParam ? "编辑尾部参数" : "添加尾部参数"}
+        title={
+          editingTailParam ? t("tailParameters.edit") : t("tailParameters.add")
+        }
         onSubmit={handleSaveTailParam}
         fields={[
           {
             name: "key",
-            label: "参数名",
+            label: t("tailParameters.key"),
             type: "text",
             required: true,
-            placeholder: "请输入参数名",
+            placeholder: t("tailParameters.key"),
           },
           {
             name: "value",
-            label: "参数值",
+            label: t("tailParameters.value"),
             type: "text",
             required: true,
-            placeholder: "请输入参数值",
+            placeholder: t("tailParameters.value"),
           },
         ]}
         initialValues={editingTailParam || undefined}
@@ -716,19 +727,21 @@ export default function Options() {
       <FormModal
         isOpen={optyParamModalOpen}
         onClose={() => setOptyParamModalOpen(false)}
-        title={editingOptyParam ? "编辑 OPTY 参数" : "添加 OPTY 参数"}
+        title={
+          editingOptyParam ? t("optyParameters.edit") : t("optyParameters.add")
+        }
         onSubmit={handleSaveOptyParam}
         fields={[
           {
             name: "key",
-            label: "参数名",
+            label: t("optyParameters.key"),
             type: "text",
             required: true,
-            placeholder: "参数名，如 TIMEOUT（自动添加OPTY_前缀）",
+            placeholder: "",
           },
           {
             name: "value",
-            label: "参数值",
+            label: t("optyParameters.value"),
             type: "switch",
             required: false,
           },
@@ -772,15 +785,14 @@ export default function Options() {
           }))
         }
       />
-
-      <ImportConfirmDialog
-        isOpen={importConfirmOpen}
-        onCancel={handleCancelImport}
-        onSkipConflicts={handleImportSkipConflicts}
-        onOverwriteConflicts={handleImportOverwriteConflicts}
-        conflicts={importConflicts}
-        isImporting={isImporting}
-      />
     </div>
+  );
+}
+
+export default function Options() {
+  return (
+    <I18nProvider>
+      <OptionsContent />
+    </I18nProvider>
   );
 }

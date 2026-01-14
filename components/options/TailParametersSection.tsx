@@ -1,6 +1,7 @@
 import type { TailParameter } from "../../lib/types";
-import { EditIcon } from "../icons";
+import { EditIcon, DeleteIcon } from "../icons";
 import { DataList } from "./DataList";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface TailParametersSectionProps {
   params: TailParameter[];
@@ -15,12 +16,14 @@ export default function TailParametersSection({
   onEdit,
   onDelete,
 }: TailParametersSectionProps) {
+  const { t } = useI18n();
+
   return (
     <DataList
       data={params}
       columns={[
-        { key: "key", label: "参数名", className: "font-mono" },
-        { key: "value", label: "参数值" },
+        { key: "key", label: t("tailParameters.key"), className: "font-mono" },
+        { key: "value", label: t("tailParameters.value") },
       ]}
       actions={[
         {
@@ -29,14 +32,14 @@ export default function TailParametersSection({
           onClick: onEdit,
         },
         {
-          label: "删除",
+          label: t("common.delete"),
           className: "text-error",
           onClick: onDelete,
         },
       ]}
       onAdd={onAdd}
-      addLabel="添加参数"
-      emptyMessage="暂无尾部参数数据"
+      addLabel={t("tailParameters.addParam")}
+      emptyMessage={t("tailParameters.noData")}
     />
   );
 }

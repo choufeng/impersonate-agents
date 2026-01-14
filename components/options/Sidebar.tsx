@@ -1,4 +1,5 @@
-import { navigationIcons } from "../icons";
+import { navigationIcons, SettingsIcon } from "../icons";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface SidebarProps {
   currentNav: string;
@@ -9,21 +10,29 @@ interface SidebarProps {
       | "uris"
       | "tail-parameters"
       | "opty-parameters"
-      | "combinations",
+      | "combinations"
+      | "settings",
   ) => void;
 }
 
 export default function Sidebar({ currentNav, onNavigate }: SidebarProps) {
+  const { t } = useI18n();
+
   const navItems = [
-    { key: "agents", label: "Agents" },
-    { key: "ports", label: "端口" },
-    { key: "uris", label: "URI" },
-    { key: "tail-parameters", label: "尾部参数" },
-    { key: "opty-parameters", label: "OPTY 参数" },
-    { key: "combinations", label: "组合配置" },
+    { key: "agents", label: t("nav.agents") },
+    { key: "ports", label: t("nav.ports") },
+    { key: "uris", label: t("nav.uris") },
+    { key: "tail-parameters", label: t("nav.tailParameters") },
+    { key: "opty-parameters", label: t("nav.optyParameters") },
+    { key: "combinations", label: t("nav.combinations") },
+    { key: "settings", label: t("nav.settings"), icon: SettingsIcon },
   ];
 
   const renderNavIcon = (navKey: string, size: number = 20) => {
+    const navItem = navItems.find((item) => item.key === navKey);
+    if (navItem?.icon) {
+      return <navItem.icon size={size} />;
+    }
     const IconComponent =
       navigationIcons[navKey as keyof typeof navigationIcons];
     return IconComponent ? <IconComponent size={size} /> : null;
@@ -51,7 +60,8 @@ export default function Sidebar({ currentNav, onNavigate }: SidebarProps) {
                       | "uris"
                       | "tail-parameters"
                       | "opty-parameters"
-                      | "combinations",
+                      | "combinations"
+                      | "settings",
                   )
                 }
               >

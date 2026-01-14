@@ -1,6 +1,7 @@
 import type { Agent } from "../../lib/types";
-import { EditIcon } from "../icons";
+import { EditIcon, DeleteIcon } from "../icons";
 import { DataList } from "./DataList";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface AgentsSectionProps {
   agents: Agent[];
@@ -15,12 +16,18 @@ export default function AgentsSection({
   onEdit,
   onDelete,
 }: AgentsSectionProps) {
+  const { t } = useI18n();
+
   return (
     <DataList
       data={agents}
       columns={[
-        { key: "id", label: "Agent ID", className: "font-mono text-sm" },
-        { key: "username", label: "用户名" },
+        {
+          key: "id",
+          label: t("agents.agentId"),
+          className: "font-mono text-sm",
+        },
+        { key: "username", label: t("agents.username") },
       ]}
       actions={[
         {
@@ -29,14 +36,14 @@ export default function AgentsSection({
           onClick: onEdit,
         },
         {
-          label: "删除",
+          label: t("common.delete"),
           className: "text-error",
           onClick: onDelete,
         },
       ]}
       onAdd={onAdd}
-      addLabel="添加 Agent"
-      emptyMessage="暂无 Agent 数据"
+      addLabel={t("agents.addAgent")}
+      emptyMessage={t("agents.noData")}
     />
   );
 }

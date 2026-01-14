@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface FormModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export default function FormModal({
   initialValues = {},
   isLoading = false,
 }: FormModalProps) {
+  const { t } = useI18n();
   const [formData, setFormData] = useState<Record<string, any>>(initialValues);
 
   useEffect(() => {
@@ -98,14 +100,14 @@ export default function FormModal({
               onClick={onClose}
               disabled={isLoading}
             >
-              取消
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={isLoading}
             >
-              {isLoading ? "保存中..." : "保存"}
+              {isLoading ? t("common.loading") : t("common.save")}
             </button>
           </div>
         </form>

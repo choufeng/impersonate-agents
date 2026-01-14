@@ -1,6 +1,7 @@
 import type { Port } from "../../lib/types";
-import { EditIcon } from "../icons";
+import { EditIcon, DeleteIcon } from "../icons";
 import { DataList } from "./DataList";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface PortsSectionProps {
   ports: Port[];
@@ -15,12 +16,14 @@ export default function PortsSection({
   onEdit,
   onDelete,
 }: PortsSectionProps) {
+  const { t } = useI18n();
+
   return (
     <DataList
       data={ports}
       columns={[
-        { key: "port", label: "端口号", className: "font-mono" },
-        { key: "description", label: "描述" },
+        { key: "port", label: t("ports.port"), className: "font-mono" },
+        { key: "description", label: t("ports.description") },
       ]}
       actions={[
         {
@@ -29,14 +32,14 @@ export default function PortsSection({
           onClick: onEdit,
         },
         {
-          label: "删除",
+          label: t("common.delete"),
           className: "text-error",
           onClick: onDelete,
         },
       ]}
       onAdd={onAdd}
-      addLabel="添加端口"
-      emptyMessage="暂无端口数据"
+      addLabel={t("ports.addPort")}
+      emptyMessage={t("ports.noData")}
     />
   );
 }

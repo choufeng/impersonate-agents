@@ -1,6 +1,7 @@
 import type { OptyParameter } from "../../lib/types";
-import { EditIcon } from "../icons";
+import { EditIcon, DeleteIcon } from "../icons";
 import { DataList } from "./DataList";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface OptyParametersSectionProps {
   params: OptyParameter[];
@@ -15,19 +16,21 @@ export default function OptyParametersSection({
   onEdit,
   onDelete,
 }: OptyParametersSectionProps) {
+  const { t } = useI18n();
+
   return (
     <DataList
       data={params}
       columns={[
         {
           key: "key",
-          label: "参数名",
-          render: (p) => `OPTY_${p.key}`,
+          label: t("optyParameters.key"),
+          render: (p) => `${t("optyParameters.optyPrefix")}${p.key}`,
           className: "font-mono",
         },
         {
           key: "value",
-          label: "参数值",
+          label: t("optyParameters.value"),
           render: (p) => (p.value ? "true" : "false"),
         },
       ]}
@@ -38,14 +41,14 @@ export default function OptyParametersSection({
           onClick: onEdit,
         },
         {
-          label: "删除",
+          label: t("common.delete"),
           className: "text-error",
           onClick: onDelete,
         },
       ]}
       onAdd={onAdd}
-      addLabel="添加参数"
-      emptyMessage="暂无 OPTY 参数数据"
+      addLabel={t("optyParameters.addParam")}
+      emptyMessage={t("optyParameters.noData")}
     />
   );
 }

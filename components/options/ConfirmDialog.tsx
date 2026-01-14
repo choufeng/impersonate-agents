@@ -1,3 +1,5 @@
+import { useI18n } from "../../lib/I18nProvider";
+
 interface ConfirmDialogProps {
   isOpen: boolean;
   onConfirm: () => void;
@@ -11,21 +13,25 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
   itemName,
-  title = "确认删除",
+  title,
 }: ConfirmDialogProps) {
+  const { t } = useI18n();
+
   if (!isOpen) return null;
 
   return (
     <dialog open className="modal">
       <div className="modal-box">
-        <h3 className="font-bold text-lg">{title}</h3>
-        <p className="py-4">确定要删除「{itemName}」吗？此操作无法撤销。</p>
+        <h3 className="font-bold text-lg">{title || t("delete.title")}</h3>
+        <p className="py-4">
+          {t("delete.message").replace("{name}", itemName)}
+        </p>
         <div className="modal-action">
           <button className="btn" onClick={onCancel}>
-            取消
+            {t("common.cancel")}
           </button>
           <button className="btn btn-error" onClick={onConfirm}>
-            删除
+            {t("common.delete")}
           </button>
         </div>
       </div>
