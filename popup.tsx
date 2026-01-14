@@ -490,12 +490,9 @@ export default function Popup() {
   // ===========================
 
   return (
-    <div
-      data-theme="abyss"
-      className="w-[360px] min-h-[400px] p-4 flex flex-col gap-4"
-    >
-      {/* 组合选择和设置 */}
-      <div className="flex gap-2">
+    <div data-theme="abyss" className="w-[360px] h-[600px] p-4 flex flex-col">
+      {/* 固定顶部：组合选择和设置 */}
+      <div className="flex gap-2 mb-4">
         <div className="flex-1">
           <select
             className="select select-bordered w-full"
@@ -612,8 +609,8 @@ export default function Popup() {
         </div>
       )}
 
-      {/* 按钮 */}
-      <div className="flex gap-2">
+      {/* 固定底部：按钮 */}
+      <div className="flex gap-2 mt-4">
         <button
           className="btn btn-primary flex-1"
           disabled={
