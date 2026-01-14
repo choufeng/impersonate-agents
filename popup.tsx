@@ -494,9 +494,22 @@ export default function Popup() {
       data-theme="abyss"
       className="w-[360px] min-h-[400px] p-4 flex flex-col gap-4"
     >
-      {/* 标题栏 */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold text-primary">IA</h1>
+      {/* 组合选择和设置 */}
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <select
+            className="select select-bordered w-full"
+            value={selectedCombinationId ?? ""}
+            onChange={(e) => handleCombinationChange(e.target.value)}
+          >
+            <option value="">选择配置...</option>
+            {combinations.map((combo) => (
+              <option key={combo.id} value={combo.id}>
+                {combo.title}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           onClick={openOptions}
           className="btn btn-sm btn-ghost"
@@ -504,22 +517,6 @@ export default function Popup() {
         >
           ⚙️
         </button>
-      </div>
-
-      {/* 组合选择 */}
-      <div>
-        <select
-          className="select select-bordered w-full"
-          value={selectedCombinationId ?? ""}
-          onChange={(e) => handleCombinationChange(e.target.value)}
-        >
-          <option value="">选择配置...</option>
-          {combinations.map((combo) => (
-            <option key={combo.id} value={combo.id}>
-              {combo.title}
-            </option>
-          ))}
-        </select>
       </div>
 
       {/* 配置详情 */}
