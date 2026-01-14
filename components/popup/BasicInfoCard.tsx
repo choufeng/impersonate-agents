@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { Agent, Port, UriEntry, Combination } from "../../lib/types";
 import { getAgents, getPorts, getUris } from "../../lib/storage";
-import { EditIcon, CheckIcon, XIcon, RefreshIcon } from "../icons";
+import { EditIcon } from "../icons";
 
 interface BasicInfoCardProps {
   combination: Combination | null;
@@ -23,24 +23,19 @@ export default function BasicInfoCard({
   const [agents, setAgents] = useState<Agent[]>([]);
   const [ports, setPorts] = useState<Port[]>([]);
   const [uris, setUris] = useState<UriEntry[]>([]);
-  const [isEditing, setIsEditing] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState("");
   const [selectedPortId, setSelectedPortId] = useState("");
   const [selectedUriId, setSelectedUriId] = useState("");
 
   useEffect(() => {
-    if (isEditing && agents.length === 0) {
-      loadData();
-    }
-  }, [isEditing]);
+    loadData();
+  }, []);
 
   useEffect(() => {
-    if (!isEditing) {
-      setSelectedAgentId(agent?.id || "");
-      setSelectedPortId(port?.id || "");
-      setSelectedUriId(uri?.id || "");
-    }
-  }, [isEditing, agent, port, uri]);
+    if (agent) setSelectedAgentId(agent.id);
+    if (port) setSelectedPortId(port.id);
+    if (uri) setSelectedUriId(uri.id);
+  }, [agent, port, uri]);
 
   const loadData = async () => {
     const [agentsData, portsData, urisData] = await Promise.all([
@@ -51,98 +46,52 @@ export default function BasicInfoCard({
     setAgents(agentsData);
     setPorts(portsData);
     setUris(urisData);
+
+    // 如果当前有选中值，保持选择
+    if (agent) setSelectedAgentId(agent.id);
+    if (port) setSelectedPortId(port.id);
+    if (uri) setSelectedUriId(uri.id);
   };
 
-  const handleSave = () => {
-    if (selectedAgentId && selectedPortId && selectedUriId) {
+  const handleAgentChange = (value: string) => {
+    setSelectedAgentId(value);
+    if (value && selectedPortId && selectedUriId) {
       onUpdate({
-        agentId: selectedAgentId,
+        agentId: value,
         portId: selectedPortId,
         uriId: selectedUriId,
       });
-      setIsEditing(false);
     }
   };
 
-  const handleCancel = () => {
-    setSelectedAgentId(agent?.id || "");
-    setSelectedPortId(port?.id || "");
-    setSelectedUriId(uri?.id || "");
-    setIsEditing(false);
+  const handlePortChange = (value: string) => {
+    setSelectedPortId(value);
+    if (selectedAgentId && value && selectedUriId) {
+      onUpdate({
+        agentId: selectedAgentId,
+        portId: value,
+        uriId: selectedUriId,
+      });
+    }
   };
 
-  if (!isEditing) {
-    return (
-      <div className="card bg-base-100 shadow-sm">
-        <div className="card-body">
-          <div className="flex justify-between items-center">
-            <h2 className="card-title text-base">基础信息</h2>
-            <button
-              className="btn btn-ghost btn-xs"
-              onClick={() => {
-                setIsEditing(true);
-                loadData();
-              }}
-              disabled={isUpdating}
-            >
-              <EditIcon size={14} />
-            </button>
-          </div>
-
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-base-content/70">Agent:</span>
-              <span className="font-medium">{agent?.username || "未选择"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-base-content/70">Port:</span>
-              <span className="font-medium">
-                {port?.port ? port.port.toString() : "未选择"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-base-content/70">URI:</span>
-              <span
-                className="font-medium truncate"
-                style={{ maxWidth: "200px" }}
-                title={uri?.uri || ""}
-              >
-                {uri?.uri || "未选择"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 编辑模式
-  const isValid = selectedAgentId && selectedPortId && selectedUriId;
+  const handleUriChange = (value: string) => {
+    setSelectedUriId(value);
+    if (selectedAgentId && selectedPortId && value) {
+      onUpdate({
+        agentId: selectedAgentId,
+        portId: selectedPortId,
+        uriId: value,
+      });
+    }
+  };
 
   return (
     <div className="card bg-base-100 shadow-sm">
       <div className="card-body">
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="card-title text-base">编辑基础信息</h2>
-          <div className="flex gap-1">
-            <button
-              className="btn btn-ghost btn-xs"
-              onClick={handleCancel}
-              disabled={isUpdating}
-            >
-              <XIcon size={14} />
-            </button>
-            <button
-              className="btn btn-primary btn-xs"
-              onClick={handleSave}
-              disabled={!isValid || isUpdating}
-            >
-              <CheckIcon size={14} />
-            </button>
-          </div>
-        </div>
+        <h2 className="card-title text-base">基础信息</h2>
 
-        <div className="space-y-3 text-sm">
+        <div className="space-y-3">
           {/* Agent Selection */}
           <div className="form-control">
             <label className="label py-1">
@@ -151,10 +100,10 @@ export default function BasicInfoCard({
             <select
               className="select select-bordered select-sm w-full"
               value={selectedAgentId}
-              onChange={(e) => setSelectedAgentId(e.target.value)}
+              onChange={(e) => handleAgentChange(e.target.value)}
               disabled={isUpdating}
             >
-              <option value="">请选择</option>
+              <option value="">请选择 Agent</option>
               {agents.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.username}
@@ -171,10 +120,10 @@ export default function BasicInfoCard({
             <select
               className="select select-bordered select-sm w-full"
               value={selectedPortId}
-              onChange={(e) => setSelectedPortId(e.target.value)}
+              onChange={(e) => handlePortChange(e.target.value)}
               disabled={isUpdating}
             >
-              <option value="">请选择</option>
+              <option value="">请选择 Port</option>
               {ports.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.port}
@@ -192,13 +141,13 @@ export default function BasicInfoCard({
             <select
               className="select select-bordered select-sm w-full"
               value={selectedUriId}
-              onChange={(e) => setSelectedUriId(e.target.value)}
+              onChange={(e) => handleUriChange(e.target.value)}
               disabled={isUpdating}
             >
-              <option value="">请选择</option>
+              <option value="">请选择 URI</option>
               {uris.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {u.uri.length > 30 ? `${u.uri.slice(0, 30)}...` : u.uri}
+                  {u.uri.length > 35 ? `${u.uri.slice(0, 35)}...` : u.uri}
                 </option>
               ))}
             </select>
