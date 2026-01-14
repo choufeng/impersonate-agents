@@ -1036,20 +1036,23 @@ export default function Options() {
                 <span>暂无 Agent 数据</span>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {agents.map((agent) => (
-                  <div key={agent.id} className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                      <h3 className="font-bold">{agent.username}</h3>
-                      <div className="card-actions justify-end">
+                  <div
+                    key={agent.id}
+                    className="card bg-base-100 shadow-lg border border-base-300"
+                  >
+                    <div className="card-body p-6">
+                      <h3 className="font-bold text-lg">{agent.username}</h3>
+                      <div className="card-actions justify-end gap-2 mt-4">
                         <button
-                          className="btn btn-sm btn-ghost"
+                          className="btn btn-ghost btn-sm"
                           onClick={() => handleEditAgent(agent)}
                         >
                           编辑
                         </button>
                         <button
-                          className="btn btn-sm btn-error"
+                          className="btn btn-error btn-sm"
                           onClick={() => handleDeleteAgent(agent)}
                         >
                           删除
@@ -1080,23 +1083,28 @@ export default function Options() {
                 <span>暂无端口数据</span>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {ports.map((port) => (
-                  <div key={port.id} className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                      <h3 className="font-bold">{port.port}</h3>
+                  <div
+                    key={port.id}
+                    className="card bg-base-100 shadow-lg border border-base-300"
+                  >
+                    <div className="card-body p-6">
+                      <h3 className="font-bold text-lg">{port.port}</h3>
                       {port.description && (
-                        <p className="text-sm opacity-70">{port.description}</p>
+                        <p className="text-base-content/70 mt-2">
+                          {port.description}
+                        </p>
                       )}
-                      <div className="card-actions justify-end">
+                      <div className="card-actions justify-end gap-2 mt-4">
                         <button
-                          className="btn btn-sm btn-ghost"
+                          className="btn btn-ghost btn-sm"
                           onClick={() => handleEditPort(port)}
                         >
                           编辑
                         </button>
                         <button
-                          className="btn btn-sm btn-error"
+                          className="btn btn-error btn-sm"
                           onClick={() => handleDeletePort(port)}
                         >
                           删除
