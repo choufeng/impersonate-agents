@@ -31,7 +31,6 @@ import type {
 } from "./lib/types";
 import CombinationSelector from "./components/popup/CombinationSelector";
 import BasicInfoCard from "./components/popup/BasicInfoCard";
-import EditBasicInfoModal from "./components/popup/EditBasicInfoModal";
 import ParameterSection from "./components/popup/ParameterSection";
 import ActionButtons from "./components/popup/ActionButtons";
 
@@ -58,7 +57,7 @@ export default function Popup() {
   const [params, setParams] = useState<TempOverride[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSaveToast, setShowSaveToast] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [isUpdatingBasicInfo, setIsUpdatingBasicInfo] = useState(false);
 
   // ===========================
   // 初始化数据加载
@@ -226,6 +225,8 @@ export default function Popup() {
   }) => {
     if (!selectedCombination) return;
 
+    setIsUpdatingBasicInfo(true);
+
     try {
       await updateCombination(selectedCombination.id, {
         agentId: data.agentId,
@@ -242,6 +243,8 @@ export default function Popup() {
       setTimeout(() => setShowSaveToast(false), 2000);
     } catch (error) {
       console.error("Failed to save basic info:", error);
+    } finally {
+      setIsUpdatingBasicInfo(false);
     }
   };
 
@@ -380,10 +383,12 @@ export default function Popup() {
       {selectedCombination && (
         <div className="space-y-4 flex-1 overflow-auto">
           <BasicInfoCard
+            combination={selectedCombination}
             agent={agent}
             port={port}
             uri={uri}
-            onEdit={() => setEditModalOpen(true)}
+            onUpdate={handleSaveBasicInfo}
+            isUpdating={isUpdatingBasicInfo}
           />
 
           <ParameterSection
@@ -415,17 +420,6 @@ export default function Popup() {
         isLoading={isLoading}
         onRedirect={handleRedirect}
         onOpenOptions={openOptions}
-      />
-
-      {/* 编辑基础信息弹窗 */}
-      <EditBasicInfoModal
-        isOpen={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        onSave={handleSaveBasicInfo}
-        combination={selectedCombination}
-        currentAgent={agent}
-        currentPort={port}
-        currentUri={uri}
       />
 
       {/* 保存成功提示 */}

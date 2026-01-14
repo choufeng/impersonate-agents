@@ -19,6 +19,9 @@ import {
   CheckCircle,
   XCircle,
   Info,
+  Check,
+  X,
+  RefreshCw,
 } from "lucide-react";
 
 // 类型定义
@@ -252,6 +255,33 @@ export const ChevronRightIcon: React.FC<IconProps> = ({
 }) => (
   <IconWrapper className={className}>
     <ChevronRight size={size} />
+  </IconWrapper>
+);
+
+// 确认图标
+export const CheckIcon: React.FC<IconProps> = ({
+  className = "",
+  size = 20,
+}) => (
+  <IconWrapper className={className}>
+    <Check size={size} />
+  </IconWrapper>
+);
+
+// 取消图标
+export const XIcon: React.FC<IconProps> = ({ className = "", size = 20 }) => (
+  <IconWrapper className={className}>
+    <X size={size} />
+  </IconWrapper>
+);
+
+// 刷新图标
+export const RefreshIcon: React.FC<IconProps> = ({
+  className = "",
+  size = 20,
+}) => (
+  <IconWrapper className={className}>
+    <RefreshCw size={size} />
   </IconWrapper>
 );
 
