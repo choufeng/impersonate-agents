@@ -1,20 +1,34 @@
 import type { Agent, Port, UriEntry } from "../../lib/types";
+import { EditIcon } from "../icons";
 
 interface BasicInfoCardProps {
   agent?: Agent | null;
   port?: Port | null;
   uri?: UriEntry | null;
+  onEdit?: () => void;
 }
 
 export default function BasicInfoCard({
   agent,
   port,
   uri,
+  onEdit,
 }: BasicInfoCardProps) {
   return (
     <div className="card bg-base-100 shadow-sm">
       <div className="card-body">
-        <h2 className="card-title">基础信息</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="card-title text-base">基础信息</h2>
+          {onEdit && (
+            <button
+              className="btn btn-ghost btn-xs"
+              onClick={onEdit}
+              title="编辑基础信息"
+            >
+              <EditIcon size={14} />
+            </button>
+          )}
+        </div>
 
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">

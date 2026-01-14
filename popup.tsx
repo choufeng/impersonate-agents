@@ -31,6 +31,7 @@ import type {
 } from "./lib/types";
 import CombinationSelector from "./components/popup/CombinationSelector";
 import BasicInfoCard from "./components/popup/BasicInfoCard";
+import EditBasicInfoModal from "./components/popup/EditBasicInfoModal";
 import ParameterSection from "./components/popup/ParameterSection";
 import ActionButtons from "./components/popup/ActionButtons";
 
@@ -57,6 +58,7 @@ export default function Popup() {
   const [params, setParams] = useState<TempOverride[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSaveToast, setShowSaveToast] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // ===========================
   // 初始化数据加载
@@ -215,6 +217,35 @@ export default function Popup() {
   };
 
   /**
+   * 保存基础信息修改
+   */
+  const handleSaveBasicInfo = async (data: {
+    agentId: string;
+    portId: string;
+    uriId: string;
+  }) => {
+    if (!selectedCombination) return;
+
+    try {
+      await updateCombination(selectedCombination.id, {
+        agentId: data.agentId,
+        portId: data.portId,
+        uriId: data.uriId,
+        updatedAt: new Date().toISOString(),
+      });
+
+      // 重新加载组合数据
+      await loadCombinationData(selectedCombination.id);
+      await loadInitialData();
+
+      setShowSaveToast(true);
+      setTimeout(() => setShowSaveToast(false), 2000);
+    } catch (error) {
+      console.error("Failed to save basic info:", error);
+    }
+  };
+
+  /**
    * 保存配置（将临时修改持久化）
    */
   const handleSave = async () => {
@@ -348,7 +379,12 @@ export default function Popup() {
 
       {selectedCombination && (
         <div className="space-y-4 flex-1 overflow-auto">
-          <BasicInfoCard agent={agent} port={port} uri={uri} />
+          <BasicInfoCard
+            agent={agent}
+            port={port}
+            uri={uri}
+            onEdit={() => setEditModalOpen(true)}
+          />
 
           <ParameterSection
             title="尾部参数"
@@ -380,6 +416,26 @@ export default function Popup() {
         onRedirect={handleRedirect}
         onOpenOptions={openOptions}
       />
+
+      {/* 编辑基础信息弹窗 */}
+      <EditBasicInfoModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSave={handleSaveBasicInfo}
+        combination={selectedCombination}
+        currentAgent={agent}
+        currentPort={port}
+        currentUri={uri}
+      />
+
+      {/* 保存成功提示 */}
+      {showSaveToast && (
+        <div className="toast toast-top toast-center">
+          <div className="alert alert-success">
+            <span>保存成功</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
