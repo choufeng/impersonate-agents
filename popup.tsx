@@ -51,13 +51,18 @@ export default function Popup() {
   const [tempValueOverrides, setTempValueOverrides] = useState<
     Map<string, string>
   >(new Map());
+
+  // 临时基础信息状态
+  const [tempAgentId, setTempAgentId] = useState<string | null>(null);
+  const [tempPortId, setTempPortId] = useState<string | null>(null);
+  const [tempUriId, setTempUriId] = useState<string | null>(null);
+
   const [agent, setAgent] = useState<Agent | null>(null);
   const [port, setPort] = useState<Port | null>(null);
   const [uri, setUri] = useState<UriEntry | null>(null);
   const [params, setParams] = useState<TempOverride[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSaveToast, setShowSaveToast] = useState(false);
-  const [isUpdatingBasicInfo, setIsUpdatingBasicInfo] = useState(false);
 
   // ===========================
   // 初始化数据加载
@@ -79,6 +84,11 @@ export default function Popup() {
       setParams([]);
       setTempOverrides(new Map());
       setTempValueOverrides(new Map());
+
+      // 清空临时基础信息状态
+      setTempAgentId(null);
+      setTempPortId(null);
+      setTempUriId(null);
     }
   }, [selectedCombinationId]);
 
@@ -115,6 +125,11 @@ export default function Popup() {
         setAgent(agentData);
         setPort(portData);
         setUri(uriData);
+
+        // 初始化临时基础信息状态
+        setTempAgentId(combination.agentId);
+        setTempPortId(combination.portId);
+        setTempUriId(combination.uriId);
 
         // 加载所有参数
         const [allTailParams, allOptyParams] = await Promise.all([
@@ -225,77 +240,71 @@ export default function Popup() {
   };
 
   /**
-   * 保存基础信息修改
+   * 更新基础信息临时状态
    */
-  const handleSaveBasicInfo = async (data: {
-    agentId: string;
-    portId: string;
-    uriId: string;
+  const handleSaveBasicInfo = (data: {
+    agentId: string | null;
+    portId: string | null;
+    uriId: string | null;
   }) => {
-    if (!selectedCombination) return;
-
-    setIsUpdatingBasicInfo(true);
-
-    try {
-      await updateCombination(selectedCombination.id, {
-        agentId: data.agentId,
-        portId: data.portId,
-        uriId: data.uriId,
-        updatedAt: new Date().toISOString(),
-      });
-
-      // 重新加载组合数据
-      await loadCombinationData(selectedCombination.id);
-      await loadInitialData();
-
-      setShowSaveToast(true);
-      setTimeout(() => setShowSaveToast(false), 2000);
-    } catch (error) {
-      console.error("Failed to save basic info:", error);
-    } finally {
-      setIsUpdatingBasicInfo(false);
-    }
+    setTempAgentId(data.agentId);
+    setTempPortId(data.portId);
+    setTempUriId(data.uriId);
   };
 
   /**
    * 保存配置（将临时修改持久化）
    */
   const handleSave = async () => {
-    if (
-      !selectedCombination ||
-      (tempOverrides.size === 0 && tempValueOverrides.size === 0)
-    ) {
+    if (!selectedCombination) {
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // 加载所有参数
-      const allTailParams = await getTailParameters();
-      const allOptyParams = await getOptyParameters();
-
-      // 更新所有修改过的 OPTY 参数
-      for (const [key, enabled] of tempOverrides) {
-        if (key.startsWith("OPTY")) {
-          // OPTY参数需要去掉前缀才能匹配
-          const originalKey = key.replace(/^OPTY_/, "");
-          const param = allOptyParams.find((p) => p.key === originalKey);
-          if (param) {
-            await updateOptyParameter(param.id, {
-              value: enabled,
-            });
-          }
-        }
+      // 保存基础信息（如果有修改）
+      if (
+        tempAgentId !== selectedCombination.agentId ||
+        tempPortId !== selectedCombination.portId ||
+        tempUriId !== selectedCombination.uriId
+      ) {
+        await updateCombination(selectedCombination.id, {
+          agentId: tempAgentId,
+          portId: tempPortId,
+          uriId: tempUriId,
+          updatedAt: new Date().toISOString(),
+        });
       }
 
-      // 更新所有修改过的 Tail 参数
-      for (const [key, value] of tempValueOverrides) {
-        const param = allTailParams.find((p) => p.key === key);
-        if (param) {
-          await updateTailParameter(param.id, {
-            value,
-          });
+      // 保存参数修改（如果有修改）
+      if (tempOverrides.size > 0 || tempValueOverrides.size > 0) {
+        // 加载所有参数
+        const allTailParams = await getTailParameters();
+        const allOptyParams = await getOptyParameters();
+
+        // 更新所有修改过的 OPTY 参数
+        for (const [key, enabled] of tempOverrides) {
+          if (key.startsWith("OPTY")) {
+            // OPTY参数需要去掉前缀才能匹配
+            const originalKey = key.replace(/^OPTY_/, "");
+            const param = allOptyParams.find((p) => p.key === originalKey);
+            if (param) {
+              await updateOptyParameter(param.id, {
+                value: enabled,
+              });
+            }
+          }
+        }
+
+        // 更新所有修改过的 Tail 参数
+        for (const [key, value] of tempValueOverrides) {
+          const param = allTailParams.find((p) => p.key === key);
+          if (param) {
+            await updateTailParameter(param.id, {
+              value,
+            });
+          }
         }
       }
 
@@ -303,6 +312,10 @@ export default function Popup() {
       await updateCombination(selectedCombination.id, {
         updatedAt: new Date().toISOString(),
       });
+
+      // 重新加载组合数据
+      await loadCombinationData(selectedCombination.id);
+      await loadInitialData();
 
       // 清除临时状态
       setTempOverrides(new Map());
@@ -330,6 +343,64 @@ export default function Popup() {
     setIsLoading(true);
 
     try {
+      // 保存所有修改（基础信息和参数）
+      if (
+        tempAgentId !== selectedCombination.agentId ||
+        tempPortId !== selectedCombination.portId ||
+        tempUriId !== selectedCombination.uriId ||
+        tempOverrides.size > 0 ||
+        tempValueOverrides.size > 0
+      ) {
+        // 保存基础信息（如果有修改）
+        if (
+          tempAgentId !== selectedCombination.agentId ||
+          tempPortId !== selectedCombination.portId ||
+          tempUriId !== selectedCombination.uriId
+        ) {
+          await updateCombination(selectedCombination.id, {
+            agentId: tempAgentId,
+            portId: tempPortId,
+            uriId: tempUriId,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+
+        // 保存参数修改（如果有修改）
+        if (tempOverrides.size > 0 || tempValueOverrides.size > 0) {
+          const allTailParams = await getTailParameters();
+          const allOptyParams = await getOptyParameters();
+
+          for (const [key, enabled] of tempOverrides) {
+            if (key.startsWith("OPTY")) {
+              const originalKey = key.replace(/^OPTY_/, "");
+              const param = allOptyParams.find((p) => p.key === originalKey);
+              if (param) {
+                await updateOptyParameter(param.id, {
+                  value: enabled,
+                });
+              }
+            }
+          }
+
+          for (const [key, value] of tempValueOverrides) {
+            const param = allTailParams.find((p) => p.key === key);
+            if (param) {
+              await updateTailParameter(param.id, {
+                value,
+              });
+            }
+          }
+        }
+
+        await updateCombination(selectedCombination.id, {
+          updatedAt: new Date().toISOString(),
+        });
+
+        // 重新加载数据
+        await loadCombinationData(selectedCombination.id);
+        await loadInitialData();
+      }
+
       // 获取当前标签页 URL
       const [tab] = await chrome.tabs.query({
         active: true,
@@ -347,7 +418,7 @@ export default function Popup() {
       const initializedId = await getCurrentCombinationInitialized();
       const needImpersonate = initializedId !== selectedCombination.id;
 
-      // 执行完整的跳转流程
+      // 执行完整的跳转流程（使用临时基础信息）
       await executeRedirectFlow({
         currentUrl,
         combination: selectedCombination,
@@ -397,7 +468,7 @@ export default function Popup() {
             port={port}
             uri={uri}
             onUpdate={handleSaveBasicInfo}
-            isUpdating={isUpdatingBasicInfo}
+            isUpdating={isLoading}
           />
 
           <ParameterSection

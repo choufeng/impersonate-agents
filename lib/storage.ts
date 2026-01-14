@@ -419,11 +419,12 @@ export const getCombinations = async (): Promise<Combination[]> => {
 };
 
 /**
- * 获取所有正式 Combinations（排除草稿）
+ * 获取所有正式 Combinations（不再过滤草稿）
  */
 export const getFormalCombinations = async (): Promise<Combination[]> => {
   const combinations = await getCombinations();
-  return combinations.filter((comb) => !isDraft(comb));
+  // 不再过滤草稿，所有组合都可以在 Popup 中显示
+  return combinations;
 };
 
 /**

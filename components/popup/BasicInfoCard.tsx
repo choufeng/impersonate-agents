@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import type { Agent, Port, UriEntry, Combination } from "../../lib/types";
 import { getAgents, getPorts, getUris } from "../../lib/storage";
-import { EditIcon } from "../icons";
 
 interface BasicInfoCardProps {
   combination: Combination | null;
   agent?: Agent | null;
   port?: Port | null;
   uri?: UriEntry | null;
-  onUpdate: (data: { agentId: string; portId: string; uriId: string }) => void;
+  onUpdate: (data: {
+    agentId: string | null;
+    portId: string | null;
+    uriId: string | null;
+  }) => void;
   isUpdating?: boolean;
 }
 
@@ -55,35 +58,29 @@ export default function BasicInfoCard({
 
   const handleAgentChange = (value: string) => {
     setSelectedAgentId(value);
-    if (value && selectedPortId && selectedUriId) {
-      onUpdate({
-        agentId: value,
-        portId: selectedPortId,
-        uriId: selectedUriId,
-      });
-    }
+    onUpdate({
+      agentId: value || null,
+      portId: selectedPortId || null,
+      uriId: selectedUriId || null,
+    });
   };
 
   const handlePortChange = (value: string) => {
     setSelectedPortId(value);
-    if (selectedAgentId && value && selectedUriId) {
-      onUpdate({
-        agentId: selectedAgentId,
-        portId: value,
-        uriId: selectedUriId,
-      });
-    }
+    onUpdate({
+      agentId: selectedAgentId || null,
+      portId: value || null,
+      uriId: selectedUriId || null,
+    });
   };
 
   const handleUriChange = (value: string) => {
     setSelectedUriId(value);
-    if (selectedAgentId && selectedPortId && value) {
-      onUpdate({
-        agentId: selectedAgentId,
-        portId: selectedPortId,
-        uriId: value,
-      });
-    }
+    onUpdate({
+      agentId: selectedAgentId || null,
+      portId: selectedPortId || null,
+      uriId: value || null,
+    });
   };
 
   return (

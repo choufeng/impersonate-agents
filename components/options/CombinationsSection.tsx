@@ -1,5 +1,4 @@
 import type { Combination } from "../../lib/types";
-import { isDraft } from "../../lib/types";
 import { EditIcon, CopyIcon, DeleteIcon } from "../icons";
 import { DataList } from "./DataList";
 import { useI18n } from "../../lib/I18nProvider";
@@ -28,16 +27,6 @@ export default function CombinationsSection({
         {
           key: "title",
           label: t("combinations.combinationName"),
-          render: (c) => (
-            <span className="flex items-center gap-2">
-              {c.title}
-              {isDraft(c) && (
-                <span className="badge badge-warning badge-xs">
-                  {t("combinations.draft")}
-                </span>
-              )}
-            </span>
-          ),
         },
         {
           key: "agentId",
