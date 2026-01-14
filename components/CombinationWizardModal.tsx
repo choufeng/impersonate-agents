@@ -566,7 +566,7 @@ export default function CombinationWizardModal({
 
       {/* 创建对话框 */}
       {createDialogOpen.type && (
-        <dialog open className="modal">
+        <div className="modal modal-open">
           <div className="modal-box">
             <h3 className="font-bold text-lg mb-4">
               {createDialogOpen.type === "agent" && "添加 Agent"}
@@ -784,7 +784,7 @@ export default function CombinationWizardModal({
           <div className="modal-backdrop" onClick={handleCloseCreateDialog}>
             <button>close</button>
           </div>
-        </dialog>
+        </div>
       )}
     </dialog>
   );
