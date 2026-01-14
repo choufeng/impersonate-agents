@@ -116,21 +116,30 @@ export default function Popup() {
         setPort(portData);
         setUri(uriData);
 
-        // 加载参数并构建TempOverride
-        const [tailParams, optyParams] = await Promise.all([
+        // 加载所有参数
+        const [allTailParams, allOptyParams] = await Promise.all([
           getTailParameters(),
           getOptyParameters(),
         ]);
 
+        // 过滤出当前组合中选中的参数
+        const selectedTailParams = allTailParams.filter((param) =>
+          combination.tailParameterIds.includes(param.id),
+        );
+        const selectedOptyParams = allOptyParams.filter((param) =>
+          combination.optyParameterIds.includes(param.id),
+        );
+
+        // 构建 TempOverride 数组
         const combinedParams: TempOverride[] = [
-          ...tailParams.map((param) => ({
+          ...selectedTailParams.map((param) => ({
             key: param.key,
             value: param.value,
             isOpty: false,
             enabled: true,
             isModified: false,
           })),
-          ...optyParams.map((param) => ({
+          ...selectedOptyParams.map((param) => ({
             key: `OPTY_${param.key}`,
             value: param.value.toString(),
             isOpty: true,

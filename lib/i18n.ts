@@ -88,6 +88,55 @@ export interface Translations {
     noData: string;
   };
 
+  wizard: {
+    step1Title: string;
+    step2Title: string;
+    step3Title: string;
+    combinationTitle: string;
+    combinationTitlePlaceholder: string;
+    basicConfigDesc: string;
+    parametersDesc: string;
+    selectAgent: string;
+    selectAgentPlaceholder: string;
+    selectPort: string;
+    selectPortPlaceholder: string;
+    selectUri: string;
+    selectUriPlaceholder: string;
+    tailParams: string;
+    noTailParams: string;
+    optyParams: string;
+    noOptyParams: string;
+    editCombination: string;
+    createCombination: string;
+    basicInfo: string;
+    basicConfig: string;
+    parameterSelection: string;
+    previous: string;
+    next: string;
+    save: string;
+    saving: string;
+    add: string;
+    addAgent: string;
+    addPort: string;
+    addUri: string;
+    addTailParam: string;
+    addOptyParam: string;
+    agentId: string;
+    username: string;
+    portNumber: string;
+    description: string;
+    descriptionOptional: string;
+    uriAddress: string;
+    uriOptional: string;
+    uriDescription: string;
+    paramName: string;
+    paramValue: string;
+    optyParamPlaceholder: string;
+    createFailed: string;
+    creating: string;
+    create: string;
+  };
+
   settings: {
     title: string;
     language: string;
@@ -220,6 +269,56 @@ export const en: Translations = {
     agentId: "Agent ID",
     draft: "Draft",
     noData: "No combinations yet",
+  },
+
+  wizard: {
+    step1Title: "Step 1: Basic Information",
+    step2Title: "Step 2: Basic Configuration",
+    step3Title: "Step 3: Parameter Selection",
+    combinationTitle: "Combination Title",
+    combinationTitlePlaceholder: "e.g., Development Environment Configuration",
+    basicConfigDesc:
+      "Select basic configuration (optional, leave blank to fill later)",
+    parametersDesc: "Select parameters (optional, leave blank to fill later)",
+    selectAgent: "Agent (Username)",
+    selectAgentPlaceholder: "Please select Agent (optional)",
+    selectPort: "Port",
+    selectPortPlaceholder: "Please select Port (optional)",
+    selectUri: "URI",
+    selectUriPlaceholder: "Please select URI (optional)",
+    tailParams: "Tail Parameters",
+    noTailParams: "No tail parameter data",
+    optyParams: "OPTY Parameters",
+    noOptyParams: "No OPTY parameter data",
+    editCombination: "Edit Combination Configuration",
+    createCombination: "Create Combination Configuration",
+    basicInfo: "Basic Info",
+    basicConfig: "Basic Configuration",
+    parameterSelection: "Parameter Selection",
+    previous: "Previous",
+    next: "Next",
+    save: "Save",
+    saving: "Saving...",
+    add: "+ Add",
+    addAgent: "Add Agent",
+    addPort: "Add Port",
+    addUri: "Add URI",
+    addTailParam: "Add Tail Parameter",
+    addOptyParam: "Add OPTY Parameter",
+    agentId: "Agent ID *",
+    username: "Username *",
+    portNumber: "Port Number *",
+    description: "Description",
+    descriptionOptional: "(optional)",
+    uriAddress: "URI Address *",
+    uriOptional: "(optional)",
+    uriDescription: "URI purpose description (optional)",
+    paramName: "Parameter Name *",
+    paramValue: "Parameter Value *",
+    optyParamPlaceholder: "e.g., TIMEOUT (automatically add OPTY_ prefix)",
+    createFailed: "Creation failed, please try again",
+    creating: "Creating...",
+    create: "Create",
   },
 
   settings: {
@@ -355,6 +454,55 @@ export const zh: Translations = {
     agentId: "Agent ID",
     draft: "草稿",
     noData: "暂无组合配置",
+  },
+
+  wizard: {
+    step1Title: "步骤 1: 基础信息",
+    step2Title: "步骤 2: 基础配置",
+    step3Title: "步骤 3: 参数选择",
+    combinationTitle: "组合标题",
+    combinationTitlePlaceholder: "例如：开发环境配置",
+    basicConfigDesc: "选择基础配置（可选，留空可稍后填写）",
+    parametersDesc: "选择参数（可选，留空可稍后填写）",
+    selectAgent: "Agent（用户名）",
+    selectAgentPlaceholder: "请选择 Agent（可选）",
+    selectPort: "端口",
+    selectPortPlaceholder: "请选择端口（可选）",
+    selectUri: "URI",
+    selectUriPlaceholder: "请选择 URI（可选）",
+    tailParams: "尾部参数",
+    noTailParams: "暂无尾部参数数据",
+    optyParams: "OPTY 参数",
+    noOptyParams: "暂无 OPTY 参数数据",
+    editCombination: "编辑组合配置",
+    createCombination: "创建组合配置",
+    basicInfo: "基础信息",
+    basicConfig: "基础配置",
+    parameterSelection: "参数选择",
+    previous: "上一步",
+    next: "下一步",
+    save: "保存",
+    saving: "保存中...",
+    add: "+ 添加",
+    addAgent: "添加 Agent",
+    addPort: "添加端口",
+    addUri: "添加 URI",
+    addTailParam: "添加尾部参数",
+    addOptyParam: "添加 OPTY 参数",
+    agentId: "Agent ID *",
+    username: "用户名 *",
+    portNumber: "端口号 *",
+    description: "描述",
+    descriptionOptional: "（可选）",
+    uriAddress: "URI 地址 *",
+    uriOptional: "（可选）",
+    uriDescription: "URI 用途说明（可选）",
+    paramName: "参数名 *",
+    paramValue: "参数值 *",
+    optyParamPlaceholder: "如 TIMEOUT（自动添加OPTY_前缀）",
+    createFailed: "创建失败，请重试",
+    creating: "创建中...",
+    create: "创建",
   },
 
   settings: {

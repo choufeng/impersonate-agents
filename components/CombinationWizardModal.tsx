@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useI18n } from "../lib/I18nProvider";
 import type {
   Agent,
   Port,
@@ -55,6 +56,8 @@ export default function CombinationWizardModal({
   onCreateOptyParam,
   onRefreshData,
 }: CombinationWizardModalProps) {
+  const { t } = useI18n();
+
   // ===========================
   // 状态管理
   // ===========================
@@ -261,7 +264,7 @@ export default function CombinationWizardModal({
       handleCloseCreateDialog();
     } catch (error) {
       console.error("Failed to create item:", error);
-      alert("创建失败，请重试");
+      alert(t("wizard.createFailed"));
     } finally {
       setIsCreating(false);
     }
@@ -291,16 +294,16 @@ export default function CombinationWizardModal({
 
   const renderStep1 = () => (
     <div className="space-y-4">
-      <h3 className="font-bold text-lg">步骤 1: 基础信息</h3>
+      <h3 className="font-bold text-lg">{t("wizard.step1Title")}</h3>
       <div className="form-control">
         <label className="label">
-          <span className="label-text">组合标题</span>
+          <span className="label-text">{t("wizard.combinationTitle")}</span>
           <span className="label-text-alt text-error"> *</span>
         </label>
         <input
           type="text"
           className="input input-bordered"
-          placeholder="例如：开发环境配置"
+          placeholder={t("wizard.combinationTitlePlaceholder")}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -310,20 +313,18 @@ export default function CombinationWizardModal({
 
   const renderStep2 = () => (
     <div className="space-y-4">
-      <h3 className="font-bold text-lg">步骤 2: 基础配置</h3>
-      <p className="text-sm opacity-70 mb-4">
-        选择基础配置（可选，留空可稍后填写）
-      </p>
+      <h3 className="font-bold text-lg">{t("wizard.step2Title")}</h3>
+      <p className="text-sm opacity-70 mb-4">{t("wizard.basicConfigDesc")}</p>
 
       <div className="form-control">
         <label className="label">
-          <span className="label-text">Agent（用户名）</span>
+          <span className="label-text">{t("wizard.selectAgent")}</span>
           <span className="label-text-alt">
             <button
               className="btn btn-xs btn-primary"
               onClick={() => handleOpenCreateDialog("agent")}
             >
-              + 添加
+              {t("wizard.add")}
             </button>
           </span>
         </label>
@@ -332,7 +333,7 @@ export default function CombinationWizardModal({
           value={selectedAgentId || ""}
           onChange={(e) => setSelectedAgentId(e.target.value || null)}
         >
-          <option value="">请选择 Agent（可选）</option>
+          <option value="">{t("wizard.selectAgentPlaceholder")}</option>
           {agents.map((agent) => (
             <option key={agent.id} value={agent.id}>
               {agent.username}
@@ -343,13 +344,13 @@ export default function CombinationWizardModal({
 
       <div className="form-control">
         <label className="label">
-          <span className="label-text">端口</span>
+          <span className="label-text">{t("wizard.selectPort")}</span>
           <span className="label-text-alt">
             <button
               className="btn btn-xs btn-primary"
               onClick={() => handleOpenCreateDialog("port")}
             >
-              + 添加
+              {t("wizard.add")}
             </button>
           </span>
         </label>
@@ -358,7 +359,7 @@ export default function CombinationWizardModal({
           value={selectedPortId || ""}
           onChange={(e) => setSelectedPortId(e.target.value || null)}
         >
-          <option value="">请选择端口（可选）</option>
+          <option value="">{t("wizard.selectPortPlaceholder")}</option>
           {ports.map((port) => (
             <option key={port.id} value={port.id}>
               {port.port} {port.description ? `- ${port.description}` : ""}
@@ -369,13 +370,13 @@ export default function CombinationWizardModal({
 
       <div className="form-control">
         <label className="label">
-          <span className="label-text">URI</span>
+          <span className="label-text">{t("wizard.selectUri")}</span>
           <span className="label-text-alt">
             <button
               className="btn btn-xs btn-primary"
               onClick={() => handleOpenCreateDialog("uri")}
             >
-              + 添加
+              {t("wizard.add")}
             </button>
           </span>
         </label>
@@ -384,7 +385,7 @@ export default function CombinationWizardModal({
           value={selectedUriId || ""}
           onChange={(e) => setSelectedUriId(e.target.value || null)}
         >
-          <option value="">请选择 URI（可选）</option>
+          <option value="">{t("wizard.selectUriPlaceholder")}</option>
           {uris.map((uri) => (
             <option key={uri.id} value={uri.id}>
               {uri.uri.length > 50 ? `${uri.uri.slice(0, 50)}...` : uri.uri}
@@ -397,24 +398,22 @@ export default function CombinationWizardModal({
 
   const renderStep3 = () => (
     <div className="space-y-4">
-      <h3 className="font-bold text-lg">步骤 3: 参数选择</h3>
-      <p className="text-sm opacity-70 mb-4">
-        选择参数（可选，留空可稍后填写）
-      </p>
+      <h3 className="font-bold text-lg">{t("wizard.step3Title")}</h3>
+      <p className="text-sm opacity-70 mb-4">{t("wizard.parametersDesc")}</p>
 
       {/* Tail Parameters */}
       <div>
         <div className="flex justify-between items-center mb-2">
-          <h4 className="font-semibold">尾部参数</h4>
+          <h4 className="font-semibold">{t("wizard.tailParams")}</h4>
           <button
             className="btn btn-xs btn-primary"
             onClick={() => handleOpenCreateDialog("tail")}
           >
-            + 添加
+            {t("wizard.add")}
           </button>
         </div>
         {tailParams.length === 0 ? (
-          <div className="text-sm opacity-50">暂无尾部参数数据</div>
+          <div className="text-sm opacity-50">{t("wizard.noTailParams")}</div>
         ) : (
           <div className="space-y-2 max-h-48 overflow-y-auto border border-base-300 rounded-lg p-2">
             {tailParams.map((param) => (
@@ -438,16 +437,16 @@ export default function CombinationWizardModal({
       {/* OPTY Parameters */}
       <div>
         <div className="flex justify-between items-center mb-2">
-          <h4 className="font-semibold">OPTY 参数</h4>
+          <h4 className="font-semibold">{t("wizard.optyParams")}</h4>
           <button
             className="btn btn-xs btn-primary"
             onClick={() => handleOpenCreateDialog("opty")}
           >
-            + 添加
+            {t("wizard.add")}
           </button>
         </div>
         {optyParams.length === 0 ? (
-          <div className="text-sm opacity-50">暂无 OPTY 参数数据</div>
+          <div className="text-sm opacity-50">{t("wizard.noOptyParams")}</div>
         ) : (
           <div className="space-y-2 max-h-48 overflow-y-auto border border-base-300 rounded-lg p-2">
             {optyParams.map((param) => (
@@ -459,7 +458,9 @@ export default function CombinationWizardModal({
                   onChange={() => handleOptyParamToggle(param.id)}
                 />
                 <div className="flex-1">
-                  <div className="font-medium text-sm">OPTY_{param.key}</div>
+                  <div className="font-medium text-sm">
+                    {t("optyParameters.optyPrefix")}_{param.key}
+                  </div>
                   <div className="text-xs opacity-70">
                     {param.value ? "true" : "false"}
                   </div>
@@ -482,7 +483,9 @@ export default function CombinationWizardModal({
     <dialog open className="modal">
       <div className="modal-box w-11/12 max-w-3xl">
         <h3 className="font-bold text-xl mb-6">
-          {editingCombination ? "编辑组合配置" : "创建组合配置"}
+          {editingCombination
+            ? t("wizard.editCombination")
+            : t("wizard.createCombination")}
         </h3>
 
         {/* 步骤指示器 */}
@@ -495,7 +498,7 @@ export default function CombinationWizardModal({
             }`}
           >
             <span className="font-bold">1</span>
-            <span className="ml-2">基础信息</span>
+            <span className="ml-2">{t("wizard.basicInfo")}</span>
           </div>
           <div
             className={`join-item flex items-center justify-center p-3 ${
@@ -505,7 +508,7 @@ export default function CombinationWizardModal({
             }`}
           >
             <span className="font-bold">2</span>
-            <span className="ml-2">基础配置</span>
+            <span className="ml-2">{t("wizard.basicConfig")}</span>
           </div>
           <div
             className={`join-item flex items-center justify-center p-3 ${
@@ -515,7 +518,7 @@ export default function CombinationWizardModal({
             }`}
           >
             <span className="font-bold">3</span>
-            <span className="ml-2">参数选择</span>
+            <span className="ml-2">{t("wizard.parameterSelection")}</span>
           </div>
         </div>
 
@@ -529,11 +532,11 @@ export default function CombinationWizardModal({
         {/* 底部按钮 */}
         <div className="modal-action">
           <button className="btn" onClick={onClose} disabled={isLoading}>
-            取消
+            {t("common.cancel")}
           </button>
           {currentStep > 1 && (
             <button className="btn" onClick={handlePrev} disabled={isLoading}>
-              上一步
+              {t("wizard.previous")}
             </button>
           )}
           {currentStep < 3 && (
@@ -546,7 +549,7 @@ export default function CombinationWizardModal({
                 (currentStep === 2 && !isStep2Valid())
               }
             >
-              下一步
+              {t("wizard.next")}
             </button>
           )}
           {currentStep === 3 && (
@@ -555,7 +558,7 @@ export default function CombinationWizardModal({
               onClick={handleSave}
               disabled={isLoading || !isStep3Valid()}
             >
-              {isLoading ? "保存中..." : "保存"}
+              {isLoading ? t("wizard.saving") : t("wizard.save")}
             </button>
           )}
         </div>
@@ -569,11 +572,11 @@ export default function CombinationWizardModal({
         <div className="modal modal-open">
           <div className="modal-box">
             <h3 className="font-bold text-lg mb-4">
-              {createDialogOpen.type === "agent" && "添加 Agent"}
-              {createDialogOpen.type === "port" && "添加端口"}
-              {createDialogOpen.type === "uri" && "添加 URI"}
-              {createDialogOpen.type === "tail" && "添加尾部参数"}
-              {createDialogOpen.type === "opty" && "添加 OPTY 参数"}
+              {createDialogOpen.type === "agent" && t("wizard.addAgent")}
+              {createDialogOpen.type === "port" && t("wizard.addPort")}
+              {createDialogOpen.type === "uri" && t("wizard.addUri")}
+              {createDialogOpen.type === "tail" && t("wizard.addTailParam")}
+              {createDialogOpen.type === "opty" && t("wizard.addOptyParam")}
             </h3>
 
             <div className="space-y-4">
@@ -581,12 +584,12 @@ export default function CombinationWizardModal({
                 <>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">Agent ID *</span>
+                      <span className="label-text">{t("wizard.agentId")}</span>
                     </label>
                     <input
                       type="text"
                       className="input input-bordered"
-                      placeholder="请输入 Agent ID"
+                      placeholder={t("agents.agentId")}
                       value={createForm.id || ""}
                       onChange={(e) =>
                         setCreateForm({ ...createForm, id: e.target.value })
@@ -596,12 +599,12 @@ export default function CombinationWizardModal({
                   </div>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">用户名 *</span>
+                      <span className="label-text">{t("wizard.username")}</span>
                     </label>
                     <input
                       type="text"
                       className="input input-bordered"
-                      placeholder="请输入用户名"
+                      placeholder={t("agents.username")}
                       value={createForm.username || ""}
                       onChange={(e) =>
                         setCreateForm({
@@ -619,12 +622,14 @@ export default function CombinationWizardModal({
                 <>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">端口号 *</span>
+                      <span className="label-text">
+                        {t("wizard.portNumber")}
+                      </span>
                     </label>
                     <input
                       type="number"
                       className="input input-bordered"
-                      placeholder="请输入端口号"
+                      placeholder={t("ports.port")}
                       value={createForm.port || ""}
                       onChange={(e) =>
                         setCreateForm({
@@ -637,12 +642,15 @@ export default function CombinationWizardModal({
                   </div>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">描述</span>
+                      <span className="label-text">
+                        {t("ports.description")}{" "}
+                        {t("wizard.descriptionOptional")}
+                      </span>
                     </label>
                     <input
                       type="text"
                       className="input input-bordered"
-                      placeholder="描述（可选）"
+                      placeholder={t("wizard.description")}
                       value={createForm.description || ""}
                       onChange={(e) =>
                         setCreateForm({
@@ -659,12 +667,14 @@ export default function CombinationWizardModal({
                 <>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">URI 地址 *</span>
+                      <span className="label-text">
+                        {t("wizard.uriAddress")}
+                      </span>
                     </label>
                     <input
                       type="text"
                       className="input input-bordered"
-                      placeholder="请输入 URI 地址，如 /api/v1/data"
+                      placeholder="/api/v1/data {t('wizard.uriOptional')}"
                       value={createForm.uri || ""}
                       onChange={(e) =>
                         setCreateForm({ ...createForm, uri: e.target.value })
@@ -674,12 +684,15 @@ export default function CombinationWizardModal({
                   </div>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">描述</span>
+                      <span className="label-text">
+                        {t("ports.description")}{" "}
+                        {t("wizard.descriptionOptional")}
+                      </span>
                     </label>
                     <input
                       type="text"
                       className="input input-bordered"
-                      placeholder="URI 用途说明（可选）"
+                      placeholder={t("wizard.uriDescription")}
                       value={createForm.description || ""}
                       onChange={(e) =>
                         setCreateForm({
@@ -696,12 +709,14 @@ export default function CombinationWizardModal({
                 <>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">参数名 *</span>
+                      <span className="label-text">
+                        {t("wizard.paramName")}
+                      </span>
                     </label>
                     <input
                       type="text"
                       className="input input-bordered"
-                      placeholder="请输入参数名"
+                      placeholder={t("tailParameters.key")}
                       value={createForm.key || ""}
                       onChange={(e) =>
                         setCreateForm({ ...createForm, key: e.target.value })
@@ -711,12 +726,14 @@ export default function CombinationWizardModal({
                   </div>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">参数值 *</span>
+                      <span className="label-text">
+                        {t("wizard.paramValue")}
+                      </span>
                     </label>
                     <input
                       type="text"
                       className="input input-bordered"
-                      placeholder="请输入参数值"
+                      placeholder={t("tailParameters.value")}
                       value={createForm.value || ""}
                       onChange={(e) =>
                         setCreateForm({ ...createForm, value: e.target.value })
@@ -731,12 +748,14 @@ export default function CombinationWizardModal({
                 <>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">参数名 *</span>
+                      <span className="label-text">
+                        {t("wizard.paramName")}
+                      </span>
                     </label>
                     <input
                       type="text"
                       className="input input-bordered"
-                      placeholder="如 TIMEOUT（自动添加OPTY_前缀）"
+                      placeholder={t("wizard.optyParamPlaceholder")}
                       value={createForm.key || ""}
                       onChange={(e) =>
                         setCreateForm({ ...createForm, key: e.target.value })
@@ -746,7 +765,9 @@ export default function CombinationWizardModal({
                   </div>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">参数值</span>
+                      <span className="label-text">
+                        {t("wizard.paramValue")}
+                      </span>
                     </label>
                     <input
                       type="checkbox"
@@ -770,14 +791,14 @@ export default function CombinationWizardModal({
                 onClick={handleCloseCreateDialog}
                 disabled={isCreating}
               >
-                取消
+                {t("common.cancel")}
               </button>
               <button
                 className="btn btn-primary"
                 onClick={handleCreate}
                 disabled={isCreating}
               >
-                {isCreating ? "创建中..." : "创建"}
+                {isCreating ? t("wizard.creating") : t("wizard.create")}
               </button>
             </div>
           </div>
