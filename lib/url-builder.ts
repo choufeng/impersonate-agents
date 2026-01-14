@@ -131,7 +131,8 @@ const buildTargetURL = (
  * @param combination - 组合配置
  * @param tailParams - 尾部参数列表
  * @param optyParams - OPTY 参数列表
- * @param tempOverrides - 临时修改（Map<key, enabled>）
+ * @param tempOverrides - 临时修改（Map<key, boolean> - 用于 OPTY 参数）
+ * @param tempValueOverrides - 临时值修改（Map<key, string> - 用于 Tail 参数）
  * @returns 参数列表（TempOverride[]）
  */
 const buildParametersWithOverrides = (
@@ -139,21 +140,24 @@ const buildParametersWithOverrides = (
   tailParams: TailParameter[],
   optyParams: OptyParameter[],
   tempOverrides: Map<string, boolean>,
+  tempValueOverrides: Map<string, string>,
 ): TempOverride[] => {
-  // 获取尾部参数
+  // 获取尾部参数（文本值）
   const tailOverrides = tailParams.map((p) => {
-    const isModified = tempOverrides.has(p.key);
-    const enabled = isModified
-      ? (tempOverrides.get(p.key) as boolean)
-      : p.value === "true";
+    const isModified = tempValueOverrides.has(p.key);
+    const currentValue = isModified
+      ? (tempValueOverrides.get(p.key) as string)
+      : p.value;
     return {
       key: p.key,
-      enabled,
+      enabled: currentValue === "true",
       isModified,
+      isOpty: false,
+      value: currentValue,
     };
   });
 
-  // 获取 OPTY 参数（构建URL时自动添加OPTY_前缀）
+  // 获取 OPTY 参数（布尔值，构建URL时自动添加OPTY_前缀）
   const optyOverrides = optyParams.map((p) => {
     const keyWithPrefix = `OPTY_${p.key}`;
     const isModified = tempOverrides.has(keyWithPrefix);
@@ -164,6 +168,7 @@ const buildParametersWithOverrides = (
       key: keyWithPrefix,
       enabled,
       isModified,
+      isOpty: true,
     };
   });
 

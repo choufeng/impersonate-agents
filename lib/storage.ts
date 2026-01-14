@@ -594,3 +594,233 @@ export const clearAllData = async (): Promise<void> => {
   await storage.set("lastSelectedCombinationId", null);
   await storage.set("currentNavigation", "agents");
 };
+
+// ============================================================================
+// 导入导出功能
+// ============================================================================
+
+/**
+ * 导出配置数据
+ *
+ * @returns 导出的 JSON 数据对象
+ */
+export const exportData = async (): Promise<{
+  version: string;
+  exportedAt: string;
+  data: {
+    agents: Agent[];
+    ports: Port[];
+    uris: UriEntry[];
+    tailParameters: TailParameter[];
+    optyParameters: OptyParameter[];
+    combinations: Combination[];
+  };
+}> => {
+  const [agents, ports, uris, tailParameters, optyParameters, combinations] =
+    await Promise.all([
+      getAgents(),
+      getPorts(),
+      getUris(),
+      getTailParameters(),
+      getOptyParameters(),
+      getCombinations(),
+    ]);
+
+  return {
+    version: "1.0",
+    exportedAt: new Date().toISOString(),
+    data: {
+      agents,
+      ports,
+      uris,
+      tailParameters,
+      optyParameters,
+      combinations,
+    },
+  };
+};
+
+/**
+ * 冲突检测结果
+ */
+export interface ImportConflictResult {
+  hasConflicts: boolean;
+  conflicts: {
+    agents: string[];
+    ports: string[];
+    uris: string[];
+    tailParameters: string[];
+    optyParameters: string[];
+    combinations: string[];
+  };
+}
+
+/**
+ * 检测导入数据的冲突
+ *
+ * @param importedData - 导入的数据
+ * @returns 冲突检测结果
+ */
+export const detectImportConflicts = async (importedData: {
+  agents: Agent[];
+  ports: Port[];
+  uris: UriEntry[];
+  tailParameters: TailParameter[];
+  optyParameters: OptyParameter[];
+  combinations: Combination[];
+}): Promise<ImportConflictResult> => {
+  const [
+    existingAgents,
+    existingPorts,
+    existingUris,
+    existingTailParams,
+    existingOptyParams,
+    existingCombinations,
+  ] = await Promise.all([
+    getAgents(),
+    getPorts(),
+    getUris(),
+    getTailParameters(),
+    getOptyParameters(),
+    getCombinations(),
+  ]);
+
+  const existingAgentIds = new Set(existingAgents.map((a) => a.id));
+  const existingPortIds = new Set(existingPorts.map((p) => p.id));
+  const existingUriIds = new Set(existingUris.map((u) => u.id));
+  const existingTailParamIds = new Set(existingTailParams.map((p) => p.id));
+  const existingOptyParamIds = new Set(existingOptyParams.map((p) => p.id));
+  const existingCombinationIds = new Set(existingCombinations.map((c) => c.id));
+
+  const conflicts = {
+    agents: importedData.agents
+      .filter((a) => existingAgentIds.has(a.id))
+      .map((a) => a.username || a.id),
+    ports: importedData.ports
+      .filter((p) => existingPortIds.has(p.id))
+      .map((p) => `${p.port}`),
+    uris: importedData.uris
+      .filter((u) => existingUriIds.has(u.id))
+      .map((u) => u.uri),
+    tailParameters: importedData.tailParameters
+      .filter((p) => existingTailParamIds.has(p.id))
+      .map((p) => p.key),
+    optyParameters: importedData.optyParameters
+      .filter((p) => existingOptyParamIds.has(p.id))
+      .map((p) => p.key),
+    combinations: importedData.combinations
+      .filter((c) => existingCombinationIds.has(c.id))
+      .map((c) => c.title),
+  };
+
+  const hasConflicts =
+    conflicts.agents.length > 0 ||
+    conflicts.ports.length > 0 ||
+    conflicts.uris.length > 0 ||
+    conflicts.tailParameters.length > 0 ||
+    conflicts.optyParameters.length > 0 ||
+    conflicts.combinations.length > 0;
+
+  return { hasConflicts, conflicts };
+};
+
+/**
+ * 导入配置数据
+ *
+ * @param importedData - 导入的数据
+ * @param overwriteConflicts - 是否覆盖冲突的数据
+ */
+export const importData = async (
+  importedData: {
+    agents: Agent[];
+    ports: Port[];
+    uris: UriEntry[];
+    tailParameters: TailParameter[];
+    optyParameters: OptyParameter[];
+    combinations: Combination[];
+  },
+  overwriteConflicts: boolean,
+): Promise<void> => {
+  const [
+    existingAgents,
+    existingPorts,
+    existingUris,
+    existingTailParams,
+    existingOptyParams,
+    existingCombinations,
+  ] = await Promise.all([
+    getAgents(),
+    getPorts(),
+    getUris(),
+    getTailParameters(),
+    getOptyParameters(),
+    getCombinations(),
+  ]);
+
+  const existingAgentIds = new Set(existingAgents.map((a) => a.id));
+  const existingPortIds = new Set(existingPorts.map((p) => p.id));
+  const existingUriIds = new Set(existingUris.map((u) => u.id));
+  const existingTailParamIds = new Set(existingTailParams.map((p) => p.id));
+  const existingOptyParamIds = new Set(existingOptyParams.map((p) => p.id));
+  const existingCombinationIds = new Set(existingCombinations.map((c) => c.id));
+
+  // 导入 Agents
+  const newAgents = overwriteConflicts
+    ? importedData.agents
+    : [
+        ...existingAgents,
+        ...importedData.agents.filter((a) => !existingAgentIds.has(a.id)),
+      ];
+  await storage.set("agents", newAgents);
+
+  // 导入 Ports
+  const newPorts = overwriteConflicts
+    ? importedData.ports
+    : [
+        ...existingPorts,
+        ...importedData.ports.filter((p) => !existingPortIds.has(p.id)),
+      ];
+  await storage.set("ports", newPorts);
+
+  // 导入 URIs
+  const newUris = overwriteConflicts
+    ? importedData.uris
+    : [
+        ...existingUris,
+        ...importedData.uris.filter((u) => !existingUriIds.has(u.id)),
+      ];
+  await storage.set("uris", newUris);
+
+  // 导入 Tail Parameters
+  const newTailParams = overwriteConflicts
+    ? importedData.tailParameters
+    : [
+        ...existingTailParams,
+        ...importedData.tailParameters.filter(
+          (p) => !existingTailParamIds.has(p.id),
+        ),
+      ];
+  await storage.set("tailParameters", newTailParams);
+
+  // 导入 OPTY Parameters
+  const newOptyParams = overwriteConflicts
+    ? importedData.optyParameters
+    : [
+        ...existingOptyParams,
+        ...importedData.optyParameters.filter(
+          (p) => !existingOptyParamIds.has(p.id),
+        ),
+      ];
+  await storage.set("optyParameters", newOptyParams);
+
+  // 导入 Combinations
+  const newCombinations = overwriteConflicts
+    ? importedData.combinations
+    : [
+        ...existingCombinations,
+        ...importedData.combinations.filter(
+          (c) => !existingCombinationIds.has(c.id),
+        ),
+      ];
+  await storage.set("combinations", newCombinations);
+};

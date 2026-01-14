@@ -85,6 +85,8 @@ export type TempOverride = {
   key: string;
   enabled: boolean;
   isModified: boolean;
+  isOpty: boolean; // 是否为 OPTY 参数
+  value?: string; // 原始值（仅 Tail 参数使用）
 };
 
 /**

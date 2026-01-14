@@ -44,6 +44,9 @@ export default function Popup() {
   const [tempOverrides, setTempOverrides] = useState<Map<string, boolean>>(
     new Map(),
   );
+  const [tempValueOverrides, setTempValueOverrides] = useState<
+    Map<string, string>
+  >(new Map());
   const [params, setParams] = useState<TempOverride[]>([]);
   const [agent, setAgent] = useState<Agent | null>(null);
   const [port, setPort] = useState<Port | null>(null);
@@ -81,6 +84,40 @@ export default function Popup() {
   }, [selectedCombinationId]);
 
   // ===========================
+  // 监控临时修改，更新参数列表
+  // ===========================
+
+  useEffect(() => {
+    if (!selectedCombination) {
+      return;
+    }
+
+    const updateParameters = async () => {
+      const allTailParams = await getTailParameters();
+      const allOptyParams = await getOptyParameters();
+
+      const tailParams = allTailParams.filter((p) =>
+        selectedCombination.tailParameterIds.includes(p.id),
+      );
+      const optyParams = allOptyParams.filter((p) =>
+        selectedCombination.optyParameterIds.includes(p.id),
+      );
+
+      const allParams = buildParametersWithOverrides(
+        selectedCombination,
+        tailParams,
+        optyParams,
+        tempOverrides,
+        tempValueOverrides,
+      );
+
+      setParams(allParams);
+    };
+
+    updateParameters();
+  }, [tempOverrides, tempValueOverrides]);
+
+  // ===========================
   // 数据加载函数
   // ===========================
 
@@ -107,6 +144,7 @@ export default function Popup() {
 
     // 清空临时修改
     setTempOverrides(new Map());
+    setTempValueOverrides(new Map());
 
     // 加载配置数据
     await loadCombinationData(combination);
@@ -161,7 +199,8 @@ export default function Popup() {
       combination,
       tailParams,
       optyParams,
-      new Map(),
+      tempOverrides,
+      tempValueOverrides,
     );
 
     setParams(allParams);
@@ -184,6 +223,7 @@ export default function Popup() {
 
     // 清空临时修改
     setTempOverrides(new Map());
+    setTempValueOverrides(new Map());
 
     // 保存最后选择的组合 ID
     await setLastSelectedCombinationId(newId);
@@ -193,7 +233,7 @@ export default function Popup() {
   };
 
   /**
-   * 参数 Toggle 切换处理（临时修改）
+   * 参数 Toggle 切换处理（临时修改 - OPTY 参数）
    */
   const handleToggleChange = (key: string, enabled: boolean) => {
     // 获取参数的原始值
@@ -214,10 +254,36 @@ export default function Popup() {
   };
 
   /**
+   * 参数值修改处理（临时修改 - Tail 参数）
+   */
+  const handleValueChange = (key: string, value: string) => {
+    // 获取参数的原始值
+    const originalParam = params.find((p) => p.key === key);
+    if (!originalParam) return;
+
+    // 如果修改后的值等于原始值，则从 Map 中移除（恢复默认）
+    // 否则，添加到 Map 中
+    setTempValueOverrides((prev) => {
+      const newMap = new Map(prev);
+      if (value === originalParam.value) {
+        newMap.delete(key);
+      } else {
+        newMap.set(key, value);
+      }
+      return newMap;
+    });
+  };
+
+  /**
    * 重置单个参数（恢复原始值）
    */
   const handleResetParameter = (key: string) => {
     setTempOverrides((prev) => {
+      const newMap = new Map(prev);
+      newMap.delete(key);
+      return newMap;
+    });
+    setTempValueOverrides((prev) => {
       const newMap = new Map(prev);
       newMap.delete(key);
       return newMap;
@@ -229,13 +295,17 @@ export default function Popup() {
    */
   const handleResetAllParameters = () => {
     setTempOverrides(new Map());
+    setTempValueOverrides(new Map());
   };
 
   /**
    * 保存配置（将临时修改持久化）
    */
   const handleSave = async () => {
-    if (!selectedCombination || tempOverrides.size === 0) {
+    if (
+      !selectedCombination ||
+      (tempOverrides.size === 0 && tempValueOverrides.size === 0)
+    ) {
       return;
     }
 
@@ -246,11 +316,8 @@ export default function Popup() {
       const allTailParams = await getTailParameters();
       const allOptyParams = await getOptyParameters();
 
-      // 更新所有修改过的参数
+      // 更新所有修改过的 OPTY 参数
       for (const [key, enabled] of tempOverrides) {
-        const value = enabled ? "true" : "false";
-
-        // 判断是尾部参数还是 OPTY 参数
         if (key.startsWith("OPTY")) {
           // OPTY参数需要去掉前缀才能匹配
           const originalKey = key.replace(/^OPTY_/, "");
@@ -260,13 +327,16 @@ export default function Popup() {
               value: enabled,
             });
           }
-        } else {
-          const param = allTailParams.find((p) => p.key === key);
-          if (param) {
-            await updateTailParameter(param.id, {
-              value,
-            });
-          }
+        }
+      }
+
+      // 更新所有修改过的 Tail 参数
+      for (const [key, value] of tempValueOverrides) {
+        const param = allTailParams.find((p) => p.key === key);
+        if (param) {
+          await updateTailParameter(param.id, {
+            value,
+          });
         }
       }
 
@@ -277,6 +347,7 @@ export default function Popup() {
 
       // 清除临时状态
       setTempOverrides(new Map());
+      setTempValueOverrides(new Map());
 
       // 显示保存成功提示
       setShowSaveToast(true);
@@ -349,32 +420,66 @@ export default function Popup() {
   // ===========================
 
   const renderParameterRow = (param: TempOverride) => {
-    const isOpty = param.key.startsWith("OPTY");
+    const isOpty = param.isOpty;
 
     return (
       <div
         key={param.key}
         className="flex items-center justify-between p-2 hover:bg-base-200 rounded"
       >
-        <span className="text-sm w-2/3 truncate" title={param.key}>
+        <span className="text-sm w-1/3 truncate" title={param.key}>
           {param.key}
         </span>
-        <div className="flex items-center gap-2">
-          {param.isModified && (
-            <button
-              className="text-xs btn btn-xs btn-ghost"
-              onClick={() => handleResetParameter(param.key)}
-              title="恢复原始值"
-            >
-              ↩️
-            </button>
+        <div className="flex items-center gap-2 flex-1">
+          {isOpty ? (
+            <>
+              {param.isModified && (
+                <button
+                  className="text-xs btn btn-xs btn-ghost"
+                  onClick={() => handleResetParameter(param.key)}
+                  title="恢复原始值"
+                >
+                  ↩️
+                </button>
+              )}
+              <input
+                type="checkbox"
+                className="toggle toggle-sm toggle-primary"
+                checked={param.enabled}
+                onChange={(e) =>
+                  handleToggleChange(param.key, e.target.checked)
+                }
+              />
+            </>
+          ) : (
+            <>
+              <input
+                type="text"
+                className="input input-xs input-bordered flex-1"
+                defaultValue={param.value || ""}
+                placeholder="输入值"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const input = e.target as HTMLInputElement;
+                    handleValueChange(param.key, input.value);
+                    input.blur();
+                  }
+                }}
+                onBlur={(e) => {
+                  handleValueChange(param.key, e.target.value);
+                }}
+              />
+              {param.isModified && (
+                <button
+                  className="text-xs btn btn-xs btn-ghost"
+                  onClick={() => handleResetParameter(param.key)}
+                  title="恢复原始值"
+                >
+                  ↩️
+                </button>
+              )}
+            </>
           )}
-          <input
-            type="checkbox"
-            className="toggle toggle-sm toggle-primary"
-            checked={param.enabled}
-            onChange={(e) => handleToggleChange(param.key, e.target.checked)}
-          />
         </div>
       </div>
     );
@@ -456,6 +561,24 @@ export default function Popup() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-bold">尾部参数</h3>
+              {tempValueOverrides.size > 0 && (
+                <button
+                  className="text-xs btn btn-xs btn-ghost text-warning"
+                  onClick={handleResetAllParameters}
+                >
+                  重置全部
+                </button>
+              )}
+            </div>
+            <div className="space-y-1">
+              {params.filter((p) => !p.isOpty).map(renderParameterRow)}
+            </div>
+          </div>
+
+          {/* OPTY 参数（可临时调整） */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-bold">OPTY 参数</h3>
               {tempOverrides.size > 0 && (
                 <button
                   className="text-xs btn btn-xs btn-ghost text-warning"
@@ -466,21 +589,7 @@ export default function Popup() {
               )}
             </div>
             <div className="space-y-1">
-              {params
-                .filter((p) => !p.key.startsWith("OPTY"))
-                .map(renderParameterRow)}
-            </div>
-          </div>
-
-          {/* OPTY 参数（可临时调整） */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold">OPTY 参数</h3>
-            </div>
-            <div className="space-y-1">
-              {params
-                .filter((p) => p.key.startsWith("OPTY"))
-                .map(renderParameterRow)}
+              {params.filter((p) => p.isOpty).map(renderParameterRow)}
             </div>
           </div>
         </div>
@@ -510,7 +619,10 @@ export default function Popup() {
       <div className="flex gap-2">
         <button
           className="btn btn-primary flex-1"
-          disabled={tempOverrides.size === 0 || isLoading}
+          disabled={
+            (tempOverrides.size === 0 && tempValueOverrides.size === 0) ||
+            isLoading
+          }
           onClick={handleSave}
         >
           {isLoading ? "保存中..." : "💾 保存配置"}

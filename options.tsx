@@ -37,6 +37,11 @@ import {
   updateCombination,
   deleteCombination,
   copyCombination,
+  // 导入导出操作
+  exportData,
+  detectImportConflicts,
+  importData,
+  type ImportConflictResult,
 } from "./lib/storage";
 import { isDraft, getCurrentTimestamp, generateId } from "./lib/types";
 import type {
@@ -218,6 +223,155 @@ const Toast = ({ show, message, type = "success", onClose }: ToastProps) => {
   );
 };
 
+interface ImportConfirmDialogProps {
+  isOpen: boolean;
+  onCancel: () => void;
+  onSkipConflicts: () => void;
+  onOverwriteConflicts: () => void;
+  conflicts: ImportConflictResult | null;
+  isImporting: boolean;
+}
+
+const ImportConfirmDialog = ({
+  isOpen,
+  onCancel,
+  onSkipConflicts,
+  onOverwriteConflicts,
+  conflicts,
+  isImporting,
+}: ImportConfirmDialogProps) => {
+  if (!isOpen) return null;
+
+  return (
+    <dialog open className="modal">
+      <div className="modal-box max-w-2xl">
+        <h3 className="font-bold text-lg mb-4">导入配置</h3>
+
+        {conflicts && conflicts.hasConflicts ? (
+          <>
+            <div role="alert" className="alert alert-warning mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <span>检测到冲突！部分配置已存在。</span>
+            </div>
+
+            <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+              {conflicts.conflicts.agents.length > 0 && (
+                <div className="text-sm">
+                  <strong>Agents ({conflicts.conflicts.agents.length}):</strong>{" "}
+                  {conflicts.conflicts.agents.join(", ")}
+                </div>
+              )}
+              {conflicts.conflicts.ports.length > 0 && (
+                <div className="text-sm">
+                  <strong>Ports ({conflicts.conflicts.ports.length}):</strong>{" "}
+                  {conflicts.conflicts.ports.join(", ")}
+                </div>
+              )}
+              {conflicts.conflicts.uris.length > 0 && (
+                <div className="text-sm">
+                  <strong>URIs ({conflicts.conflicts.uris.length}):</strong>{" "}
+                  {conflicts.conflicts.uris.join(", ")}
+                </div>
+              )}
+              {conflicts.conflicts.tailParameters.length > 0 && (
+                <div className="text-sm">
+                  <strong>
+                    尾部参数 ({conflicts.conflicts.tailParameters.length}):
+                  </strong>{" "}
+                  {conflicts.conflicts.tailParameters.join(", ")}
+                </div>
+              )}
+              {conflicts.conflicts.optyParameters.length > 0 && (
+                <div className="text-sm">
+                  <strong>
+                    OPTY 参数 ({conflicts.conflicts.optyParameters.length}):
+                  </strong>{" "}
+                  {conflicts.conflicts.optyParameters.join(", ")}
+                </div>
+              )}
+              {conflicts.conflicts.combinations.length > 0 && (
+                <div className="text-sm">
+                  <strong>
+                    组合配置 ({conflicts.conflicts.combinations.length}):
+                  </strong>{" "}
+                  {conflicts.conflicts.combinations.join(", ")}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-action">
+              <button className="btn" onClick={onCancel} disabled={isImporting}>
+                取消
+              </button>
+              <button
+                className="btn btn-outline"
+                onClick={onSkipConflicts}
+                disabled={isImporting}
+              >
+                跳过冲突
+              </button>
+              <button
+                className="btn btn-warning"
+                onClick={onOverwriteConflicts}
+                disabled={isImporting}
+              >
+                {isImporting ? "导入中..." : "覆盖冲突"}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div role="alert" className="alert alert-success mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>没有检测到冲突，将直接导入所有配置。</span>
+            </div>
+
+            <div className="modal-action">
+              <button className="btn" onClick={onCancel} disabled={isImporting}>
+                取消
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={onSkipConflicts}
+                disabled={isImporting}
+              >
+                {isImporting ? "导入中..." : "开始导入"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+      <form method="dialog" className="modal-backdrop">
+        <button onClick={onCancel}>close</button>
+      </form>
+    </dialog>
+  );
+};
+
 // ============================================================================
 // 主组件
 // ============================================================================
@@ -287,6 +441,14 @@ export default function Options() {
     message: "",
     type: "success",
   });
+
+  // Import/Export
+  const [importConfirmOpen, setImportConfirmOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importConflicts, setImportConflicts] =
+    useState<ImportConflictResult | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importedData, setImportedData] = useState<any>(null);
 
   // ===========================
   // 初始化
@@ -666,6 +828,120 @@ export default function Options() {
   };
 
   // ===========================
+  // 导入导出处理函数
+  // ===========================
+
+  /**
+   * 导出配置
+   */
+  const handleExport = async () => {
+    try {
+      const data = await exportData();
+      const jsonString = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const timestamp = new Date()
+        .toISOString()
+        .replace(/[:.]/g, "-")
+        .slice(0, 19);
+      a.download = `impersonate-agents-config-${timestamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("配置已导出", "success");
+    } catch (error) {
+      console.error("Export failed:", error);
+      showToast("导出失败", "error");
+    }
+  };
+
+  /**
+   * 处理文件选择
+   */
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // 验证数据格式
+      if (!data.version || !data.data) {
+        throw new Error("无效的配置文件格式");
+      }
+
+      setImportedData(data.data);
+      setImportFile(file);
+
+      // 检测冲突
+      const conflicts = await detectImportConflicts(data.data);
+      setImportConflicts(conflicts);
+
+      setImportConfirmOpen(true);
+    } catch (error) {
+      console.error("File parsing failed:", error);
+      showToast("文件解析失败", "error");
+    }
+
+    // 清空 input 以便重新选择同一文件
+    e.target.value = "";
+  };
+
+  /**
+   * 取消导入
+   */
+  const handleCancelImport = () => {
+    setImportConfirmOpen(false);
+    setImportFile(null);
+    setImportedData(null);
+    setImportConflicts(null);
+  };
+
+  /**
+   * 执行导入（跳过冲突）
+   */
+  const handleImportSkipConflicts = async () => {
+    if (!importedData) return;
+
+    try {
+      setIsImporting(true);
+      await importData(importedData, false);
+      showToast("导入成功（跳过冲突）", "success");
+      await loadData();
+      handleCancelImport();
+    } catch (error) {
+      console.error("Import failed:", error);
+      showToast("导入失败", "error");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  /**
+   * 执行导入（覆盖冲突）
+   */
+  const handleImportOverwriteConflicts = async () => {
+    if (!importedData) return;
+
+    try {
+      setIsImporting(true);
+      await importData(importedData, true);
+      showToast("导入成功（覆盖冲突）", "success");
+      await loadData();
+      handleCancelImport();
+    } catch (error) {
+      console.error("Import failed:", error);
+      showToast("导入失败", "error");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // ===========================
   // 主渲染
   // ===========================
 
@@ -725,7 +1001,23 @@ export default function Options() {
 
       {/* 主内容区 */}
       <main className="flex-1 ml-64 p-6 overflow-auto">
-        <h1 className="text-2xl font-bold mb-6">配置管理</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">配置管理</h1>
+          <div className="flex gap-2">
+            <button className="btn btn-primary btn-sm" onClick={handleExport}>
+              📤 导出配置
+            </button>
+            <label className="btn btn-success btn-sm cursor-pointer">
+              📥 导入配置
+              <input
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+            </label>
+          </div>
+        </div>
 
         {/* Agents */}
         {currentNav === "agents" && (
@@ -1185,6 +1477,16 @@ export default function Options() {
             show: false,
           }))
         }
+      />
+
+      {/* 导入确认对话框 */}
+      <ImportConfirmDialog
+        isOpen={importConfirmOpen}
+        onCancel={handleCancelImport}
+        onSkipConflicts={handleImportSkipConflicts}
+        onOverwriteConflicts={handleImportOverwriteConflicts}
+        conflicts={importConflicts}
+        isImporting={isImporting}
       />
     </div>
   );
