@@ -34,7 +34,7 @@ export default function FormModal({
     if (isOpen) {
       setFormData(initialValues || {});
     }
-  }, [isOpen, initialValues]);
+  }, [isOpen]); // 移除 initialValues 依赖，只在打开/关闭时重置
 
   const handleChange = (name: string, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
