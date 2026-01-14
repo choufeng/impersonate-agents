@@ -62,7 +62,6 @@ export default function Popup() {
   const [uri, setUri] = useState<UriEntry | null>(null);
   const [params, setParams] = useState<TempOverride[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showSaveToast, setShowSaveToast] = useState(false);
 
   // ===========================
   // 初始化数据加载
@@ -253,85 +252,6 @@ export default function Popup() {
   };
 
   /**
-   * 保存配置（将临时修改持久化）
-   */
-  const handleSave = async () => {
-    if (!selectedCombination) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // 保存基础信息（如果有修改）
-      if (
-        tempAgentId !== selectedCombination.agentId ||
-        tempPortId !== selectedCombination.portId ||
-        tempUriId !== selectedCombination.uriId
-      ) {
-        await updateCombination(selectedCombination.id, {
-          agentId: tempAgentId,
-          portId: tempPortId,
-          uriId: tempUriId,
-          updatedAt: new Date().toISOString(),
-        });
-      }
-
-      // 保存参数修改（如果有修改）
-      if (tempOverrides.size > 0 || tempValueOverrides.size > 0) {
-        // 加载所有参数
-        const allTailParams = await getTailParameters();
-        const allOptyParams = await getOptyParameters();
-
-        // 更新所有修改过的 OPTY 参数
-        for (const [key, enabled] of tempOverrides) {
-          if (key.startsWith("OPTY")) {
-            // OPTY参数需要去掉前缀才能匹配
-            const originalKey = key.replace(/^OPTY_/, "");
-            const param = allOptyParams.find((p) => p.key === originalKey);
-            if (param) {
-              await updateOptyParameter(param.id, {
-                value: enabled,
-              });
-            }
-          }
-        }
-
-        // 更新所有修改过的 Tail 参数
-        for (const [key, value] of tempValueOverrides) {
-          const param = allTailParams.find((p) => p.key === key);
-          if (param) {
-            await updateTailParameter(param.id, {
-              value,
-            });
-          }
-        }
-      }
-
-      // 更新组合的最后修改时间
-      await updateCombination(selectedCombination.id, {
-        updatedAt: new Date().toISOString(),
-      });
-
-      // 重新加载组合数据
-      await loadCombinationData(selectedCombination.id);
-      await loadInitialData();
-
-      // 清除临时状态
-      setTempOverrides(new Map());
-      setTempValueOverrides(new Map());
-
-      // 显示保存成功提示
-      setShowSaveToast(true);
-      setTimeout(() => setShowSaveToast(false), 2000);
-    } catch (error) {
-      console.error("Failed to save configuration:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
    * 跳转按钮处理（执行完整的跳转流程）
    */
   const handleRedirect = async () => {
@@ -343,64 +263,6 @@ export default function Popup() {
     setIsLoading(true);
 
     try {
-      // 保存所有修改（基础信息和参数）
-      if (
-        tempAgentId !== selectedCombination.agentId ||
-        tempPortId !== selectedCombination.portId ||
-        tempUriId !== selectedCombination.uriId ||
-        tempOverrides.size > 0 ||
-        tempValueOverrides.size > 0
-      ) {
-        // 保存基础信息（如果有修改）
-        if (
-          tempAgentId !== selectedCombination.agentId ||
-          tempPortId !== selectedCombination.portId ||
-          tempUriId !== selectedCombination.uriId
-        ) {
-          await updateCombination(selectedCombination.id, {
-            agentId: tempAgentId,
-            portId: tempPortId,
-            uriId: tempUriId,
-            updatedAt: new Date().toISOString(),
-          });
-        }
-
-        // 保存参数修改（如果有修改）
-        if (tempOverrides.size > 0 || tempValueOverrides.size > 0) {
-          const allTailParams = await getTailParameters();
-          const allOptyParams = await getOptyParameters();
-
-          for (const [key, enabled] of tempOverrides) {
-            if (key.startsWith("OPTY")) {
-              const originalKey = key.replace(/^OPTY_/, "");
-              const param = allOptyParams.find((p) => p.key === originalKey);
-              if (param) {
-                await updateOptyParameter(param.id, {
-                  value: enabled,
-                });
-              }
-            }
-          }
-
-          for (const [key, value] of tempValueOverrides) {
-            const param = allTailParams.find((p) => p.key === key);
-            if (param) {
-              await updateTailParameter(param.id, {
-                value,
-              });
-            }
-          }
-        }
-
-        await updateCombination(selectedCombination.id, {
-          updatedAt: new Date().toISOString(),
-        });
-
-        // 重新加载数据
-        await loadCombinationData(selectedCombination.id);
-        await loadInitialData();
-      }
-
       // 获取当前标签页 URL
       const [tab] = await chrome.tabs.query({
         active: true,
@@ -418,14 +280,70 @@ export default function Popup() {
       const initializedId = await getCurrentCombinationInitialized();
       const needImpersonate = initializedId !== selectedCombination.id;
 
-      // 执行完整的跳转流程（使用临时基础信息）
+      // 构建临时组合对象（使用临时状态）
+      const tempCombination: Combination = {
+        ...selectedCombination,
+        agentId: tempAgentId,
+        portId: tempPortId,
+        uriId: tempUriId,
+      };
+
+      // 构建临时参数列表（包含临时修改）
+      const allTailParams = await getTailParameters();
+      const allOptyParams = await getOptyParameters();
+
+      // 基础参数（来自当前组合选中的参数）
+      const baseTailParams = allTailParams.filter((param) =>
+        selectedCombination.tailParameterIds.includes(param.id),
+      );
+      const baseOptyParams = allOptyParams.filter((param) =>
+        selectedCombination.optyParameterIds.includes(param.id),
+      );
+
+      // 应用临时修改
+      const tempParams: TempOverride[] = [
+        ...baseTailParams.map((param) => {
+          const key = param.key;
+          const value = tempValueOverrides.has(key)
+            ? (tempValueOverrides.get(key) as string)
+            : param.value;
+          return {
+            key,
+            value,
+            isOpty: false,
+            enabled: true,
+            isModified: false,
+          };
+        }),
+        ...baseOptyParams.map((param) => {
+          const keyWithPrefix = `OPTY_${param.key}`;
+          const enabled = tempOverrides.has(keyWithPrefix)
+            ? (tempOverrides.get(keyWithPrefix) as boolean)
+            : param.value;
+          return {
+            key: keyWithPrefix,
+            enabled,
+            isOpty: true,
+            isModified: false,
+          };
+        }),
+      ];
+
+      // 获取临时 agent, port, uri 数据
+      const [tempAgent, tempPort, tempUri] = await Promise.all([
+        tempAgentId ? getAgentById(tempAgentId) : null,
+        tempPortId ? getPortById(tempPortId) : null,
+        tempUriId ? getUriById(tempUriId) : null,
+      ]);
+
+      // 执行完整的跳转流程（使用临时状态）
       await executeRedirectFlow({
         currentUrl,
-        combination: selectedCombination,
-        agent: agent!,
-        port,
-        uri: uri!,
-        params,
+        combination: tempCombination,
+        agent: tempAgent || agent!,
+        port: tempPort,
+        uri: tempUri || uri!,
+        params: tempParams,
         needImpersonate,
       });
 
@@ -501,15 +419,6 @@ export default function Popup() {
         onRedirect={handleRedirect}
         onOpenOptions={openOptions}
       />
-
-      {/* 保存成功提示 */}
-      {showSaveToast && (
-        <div className="toast toast-top toast-center">
-          <div className="alert alert-success">
-            <span>保存成功</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
