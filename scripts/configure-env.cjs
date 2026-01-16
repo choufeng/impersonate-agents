@@ -1,43 +1,51 @@
 /**
- * Configure extension name based on environment
- *
- * Development: impersonate-agents-dev (allows side-by-side with production)
- * Production: impersonate-agents
+ * Configure and run Plasmo build with correct environment
  */
 
+const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const packageJsonPath = path.join(__dirname, "..", "package.json");
-const packageJson = require(packageJsonPath);
-
 const isProduction = process.env.NODE_ENV === "production";
 
-if (isProduction) {
-  // Production configuration
-  packageJson.name = "impersonate-agents";
-  packageJson.displayName = "IA";
-  packageJson.version = "1.1.0";
-} else {
-  // Development configuration
-  packageJson.name = "impersonate-agents-dev";
-  packageJson.displayName = "IA - Development";
-  packageJson.version = "1.1.0-dev";
-}
+// Configuration
+const config = {
+  development: {
+    name: "impersonate-agents-dev",
+    displayName: "IA - Development",
+    version: "1.1.0-dev",
+    buildDir: "build/chrome-mv3-dev",
+  },
+  production: {
+    name: "impersonate-agents",
+    displayName: "IA",
+    version: "1.1.0",
+    buildDir: "build/chrome-mv3-prod",
+  },
+}[isProduction ? "production" : "development"];
 
 console.log(
   `\n🚀 Extension Configuration: ${isProduction ? "PRODUCTION" : "DEVELOPMENT"}`,
 );
-console.log(`   Extension ID: ${packageJson.name}`);
-console.log(`   Display Name: ${packageJson.displayName}`);
-console.log(`   Version: ${packageJson.version}\n`);
+console.log(`   Extension ID: ${config.name}`);
+console.log(`   Display Name: ${config.displayName}`);
+console.log(`   Version: ${config.version}\n`);
 
-// Write updated package.json to disk
+// Update package.json
+const packageJsonPath = path.join(__dirname, "..", "package.json");
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+
+packageJson.name = config.name;
+packageJson.displayName = config.displayName;
+packageJson.version = config.version;
+
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
-// Register cleanup on exit (restore original package.json)
-process.on("exit", () => {
-  console.log("🔄 Restoring original package.json...");
-  // We restore the original from git when the build/dev session ends
-  // This is done by git checkout or by the user's git workflow
-});
+// Run Plasmo build
+const buildCommand = `cross-env NODE_ENV=${isProduction ? "production" : "development"} plasmo build`;
+console.log(`🔨 Running: ${buildCommand}`);
+execSync(buildCommand, { stdio: "inherit" });
+
+// Run post-build script to update manifest
+console.log(`\n📝 Updating manifest metadata...`);
+require("./postbuild.cjs");
