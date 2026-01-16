@@ -1,12 +1,16 @@
 {
   "name": "impersonate-agents",
-  "displayName": "Tool for Impersonating Agents",
+  "displayName": "IA",
   "version": "1.1.0",
   "description": "A simple chrome extension for impersonate a agent.",
   "type": "module",
   "scripts": {
-    "dev": "plasmo dev",
-    "build": "plasmo build",
+    "predev": "node scripts/configure-env.cjs",
+    "dev": "cross-env NODE_ENV=development plasmo dev",
+    "dev:prod": "node scripts/configure-env.cjs && cross-env NODE_ENV=production plasmo dev",
+    "prebuild": "node scripts/configure-env.cjs",
+    "build": "cross-env NODE_ENV=development node scripts/configure-env.cjs && plasmo build",
+    "build:prod": "cross-env NODE_ENV=production node scripts/configure-env.cjs && plasmo build",
     "package": "plasmo package"
   },
   "dependencies": {
@@ -22,6 +26,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.23",
+    "cross-env": "^10.1.0",
     "daisyui": "^4.12.14",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
