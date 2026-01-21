@@ -215,6 +215,99 @@ const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
+/**
+ * 在页面上下文中执行 impersonate
+ *
+ * @param targetUrl - 目标URL（impersonate成功后跳转的地址）
+ * @param userId - 要模拟的用户ID
+ */
+const executeImpersonateInPage = async (
+  targetUrl: string,
+  userId: string,
+): Promise<void> => {
+  console.log("🔵 [IMPERSONATE] 开始执行 impersonate");
+  console.log("🔵 [IMPERSONATE] 目标URL:", targetUrl);
+  console.log("🔵 [IMPERSONATE] 用户ID:", userId);
+
+  const tab = await getCurrentTab();
+  console.log("🔵 [IMPERSONATE] 当前Tab ID:", tab.id);
+
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id! },
+    world: chrome.scripting.ExecutionWorld.MAIN,
+    func: (url: string, user: string) => {
+      console.log("🟢 [PAGE] 进入页面上下文");
+      console.log("🟢 [PAGE] 目标URL:", url);
+      console.log("🟢 [PAGE] 用户ID:", user);
+
+      // 在页面上下文中执行
+      function postRequest(endpoint: string, data: any) {
+        console.log("🟡 [POST] 发送POST请求:", endpoint, data);
+        return fetch(endpoint, {
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(data),
+          method: "POST",
+          credentials: "same-origin",
+        })
+          .then((response) => {
+            console.log("🟡 [POST] 响应状态:", response.status);
+            console.log("🟡 [POST] 响应OK:", response.ok);
+            return response;
+          })
+          .catch((error) => {
+            console.error("🔴 [POST] 请求失败:", error);
+            throw error;
+          });
+      }
+
+      function impersonateUser(userId: string) {
+        console.log("🟢 [PAGE] 开始 impersonate user:", userId);
+        postRequest("/impersonate/", {
+          impersonation_tool: "a3g",
+          targetUserId: userId,
+        })
+          .then(() => {
+            console.log("🟢 [PAGE] Impersonate成功，准备跳转到:", url);
+            window.location.href = url;
+          })
+          .catch((error) => {
+            console.error("🔴 [PAGE] Impersonate失败:", error);
+          });
+      }
+
+      // 检查是否已经处于impersonate状态
+      const impersonationBanner = document.querySelector(
+        "header.uc-impersonationBanner",
+      );
+      console.log(
+        "🟢 [PAGE] 检测到 impersonation banner:",
+        !!impersonationBanner,
+      );
+
+      if (impersonationBanner) {
+        console.log("🟢 [PAGE] 先取消当前 impersonate");
+        // 先取消当前impersonate
+        postRequest("/unimpersonate/", {
+          impersonation_tool: "impersonation_banner",
+        })
+          .then(() => {
+            console.log("🟢 [PAGE] 取消成功，现在执行新的 impersonate");
+            impersonateUser(user);
+          })
+          .catch((error) => {
+            console.error("🔴 [PAGE] 取消 impersonate 失败:", error);
+          });
+      } else {
+        console.log("🟢 [PAGE] 直接执行 impersonate");
+        impersonateUser(user);
+      }
+    },
+    args: [targetUrl, userId],
+  });
+
+  console.log("🔵 [IMPERSONATE] executeScript 调用完成");
+};
+
 // ============================================================================
 // 完整的跳转流程
 // ============================================================================
@@ -239,29 +332,17 @@ const executeRedirectFlow = async (options: {
   params: TempOverride[];
   needImpersonate: boolean;
 }): Promise<void> => {
+  console.log("🚀 [REDIRECT] ========== 开始执行跳转流程 ==========");
   const { currentUrl, combination, agent, port, uri, params, needImpersonate } =
     options;
 
-  // 获取当前标签页
-  const tab = await getCurrentTab();
-
-  // 如果需要 impersonate
-  if (needImpersonate) {
-    // 构建基础 URL
-    const baseURL = buildBaseURL(currentUrl, uri.uri, port?.port ?? null);
-
-    // 构建 impersonation URL
-    const impersonationURL = buildImpersonationURL(baseURL, agent);
-
-    // 执行 impersonate
-    await redirectTab(impersonationURL);
-
-    // 等待冒充完成（500ms 延迟）
-    await sleep(500);
-
-    // 记录初始化标记（这个需要在 storage.ts 中处理）
-    // 这里只负责跳转，不负责存储标记
-  }
+  console.log("🚀 [REDIRECT] 当前URL:", currentUrl);
+  console.log("🚀 [REDIRECT] 组合ID:", combination.id);
+  console.log("🚀 [REDIRECT] Agent:", agent);
+  console.log("🚀 [REDIRECT] Port:", port);
+  console.log("🚀 [REDIRECT] URI:", uri);
+  console.log("🚀 [REDIRECT] 参数数量:", params.length);
+  console.log("🚀 [REDIRECT] 需要Impersonate:", needImpersonate);
 
   // 构建目标 URL（使用正确的参数）
   const targetURL = buildTargetURL(
@@ -270,9 +351,19 @@ const executeRedirectFlow = async (options: {
     port?.port ?? null,
     params,
   );
+  console.log("🚀 [REDIRECT] 构建的目标URL:", targetURL);
 
-  // 跳转到目标 URL
-  await redirectTab(targetURL);
+  // 如果需要 impersonate，使用页面上下文执行POST请求
+  if (needImpersonate) {
+    console.log("🚀 [REDIRECT] ✅ 需要执行 impersonate");
+    await executeImpersonateInPage(targetURL, agent.id);
+  } else {
+    console.log("🚀 [REDIRECT] ⏭️  跳过 impersonate，直接跳转");
+    // 不需要 impersonate，直接跳转
+    await redirectTab(targetURL);
+  }
+
+  console.log("🚀 [REDIRECT] ========== 跳转流程结束 ==========");
 };
 
 // ============================================================================

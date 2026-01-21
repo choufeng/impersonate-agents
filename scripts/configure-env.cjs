@@ -13,13 +13,13 @@ const config = {
   development: {
     name: "impersonate-agents-dev",
     displayName: "IA - Development",
-    version: "1.1.0-dev",
+    version: "2.0.0",
     buildDir: "build/chrome-mv3-dev",
   },
   production: {
     name: "impersonate-agents",
     displayName: "IA",
-    version: "1.1.0",
+    version: "2.0.0",
     buildDir: "build/chrome-mv3-prod",
   },
 }[isProduction ? "production" : "development"];

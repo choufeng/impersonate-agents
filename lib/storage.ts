@@ -530,6 +530,25 @@ export const getCurrentCombinationInitialized = async (): Promise<
 };
 
 /**
+ * 设置当前已模拟的 Agent ID
+ */
+export const setCurrentImpersonatedAgentId = async (
+  agentId: string | null,
+): Promise<void> => {
+  await storage.set("currentImpersonatedAgentId", agentId);
+};
+
+/**
+ * 获取当前已模拟的 Agent ID
+ */
+export const getCurrentImpersonatedAgentId = async (): Promise<
+  string | null
+> => {
+  const data = await storage.get<string | null>("currentImpersonatedAgentId");
+  return data ?? null;
+};
+
+/**
  * 设置最后选择的组合 ID
  */
 export const setLastSelectedCombinationId = async (

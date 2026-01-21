@@ -15,6 +15,8 @@ import {
   getLastSelectedCombinationId,
   getCurrentCombinationInitialized,
   setCurrentCombinationInitialized,
+  getCurrentImpersonatedAgentId,
+  setCurrentImpersonatedAgentId,
 } from "./lib/storage";
 import {
   buildParametersWithOverrides,
@@ -255,11 +257,13 @@ export default function Popup() {
    * 跳转按钮处理（执行完整的跳转流程）
    */
   const handleRedirect = async () => {
+    console.log("📱 [POPUP] ========== 用户点击跳转按钮 ==========");
     if (!selectedCombination) {
-      console.warn("No combination selected");
+      console.warn("📱 [POPUP] ⚠️ 没有选择组合");
       return;
     }
 
+    console.log("📱 [POPUP] 选中的组合:", selectedCombination);
     setIsLoading(true);
 
     try {
@@ -269,16 +273,13 @@ export default function Popup() {
         currentWindow: true,
       });
       if (!tab || !tab.url) {
-        console.error("Failed to get current tab");
+        console.error("📱 [POPUP] ❌ 无法获取当前标签页");
         setIsLoading(false);
         return;
       }
 
       const currentUrl = tab.url;
-
-      // 检查是否需要 impersonate
-      const initializedId = await getCurrentCombinationInitialized();
-      const needImpersonate = initializedId !== selectedCombination.id;
+      console.log("📱 [POPUP] 当前URL:", currentUrl);
 
       // 构建临时组合对象（使用临时状态）
       const tempCombination: Combination = {
@@ -336,11 +337,26 @@ export default function Popup() {
         tempUriId ? getUriById(tempUriId) : null,
       ]);
 
+      // 确定最终使用的 Agent
+      const finalAgent = tempAgent || agent!;
+
+      // 检查是否需要 impersonate（比较 Agent ID）
+      const currentImpersonatedAgentId = await getCurrentImpersonatedAgentId();
+      const needImpersonate = currentImpersonatedAgentId !== finalAgent.id;
+
+      console.log(
+        "📱 [POPUP] 当前已模拟的Agent ID:",
+        currentImpersonatedAgentId,
+      );
+      console.log("📱 [POPUP] 即将使用的Agent ID:", finalAgent.id);
+      console.log("📱 [POPUP] 即将使用的Agent:", finalAgent);
+      console.log("📱 [POPUP] ✅ 需要Impersonate:", needImpersonate);
+
       // 执行完整的跳转流程（使用临时状态）
       await executeRedirectFlow({
         currentUrl,
         combination: tempCombination,
-        agent: tempAgent || agent!,
+        agent: finalAgent,
         port: tempPort,
         uri: tempUri || uri!,
         params: tempParams,
@@ -349,6 +365,9 @@ export default function Popup() {
 
       // 记录初始化标记
       await setCurrentCombinationInitialized(selectedCombination.id);
+      // 记录当前已模拟的 Agent ID
+      await setCurrentImpersonatedAgentId(finalAgent.id);
+      console.log("📱 [POPUP] ✅ 已保存当前模拟的Agent ID:", finalAgent.id);
     } catch (error) {
       console.error("Failed to execute redirect:", error);
     } finally {
