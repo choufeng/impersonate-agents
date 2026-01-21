@@ -97,7 +97,7 @@ export default function BasicInfoCard({
   };
 
   return (
-    <div className="card bg-base-100 shadow-sm">
+    <div className="card bg-base-100 shadow-sm rounded-lg">
       <div className="card-body">
         <h2 className="card-title text-base">基础信息</h2>
 

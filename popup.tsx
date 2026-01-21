@@ -471,58 +471,68 @@ export default function Popup() {
   return (
     <div
       data-theme="corporate"
-      className="w-[360px] h-[600px] p-4 flex flex-col bg-base-300"
+      className="w-[360px] h-[600px] py-4 flex flex-col bg-base-300"
     >
-      <CombinationSelector
-        combinations={combinations}
-        selectedCombinationId={selectedCombinationId}
-        onCombinationChange={handleCombinationChange}
-      />
+      <div className="px-4">
+        <CombinationSelector
+          combinations={combinations}
+          selectedCombinationId={selectedCombinationId}
+          onCombinationChange={handleCombinationChange}
+        />
+      </div>
 
       {selectedCombination && (
         <div className="space-y-4 flex-1 overflow-auto">
-          <BasicInfoCard
-            combination={selectedCombination}
-            agent={agent}
-            port={port}
-            uri={uri}
-            tempAgentId={tempAgentId}
-            tempPortId={tempPortId}
-            tempUriId={tempUriId}
-            onUpdate={handleSaveBasicInfo}
-            isUpdating={isLoading}
-          />
+          <div className="px-4">
+            <BasicInfoCard
+              combination={selectedCombination}
+              agent={agent}
+              port={port}
+              uri={uri}
+              tempAgentId={tempAgentId}
+              tempPortId={tempPortId}
+              tempUriId={tempUriId}
+              onUpdate={handleSaveBasicInfo}
+              isUpdating={isLoading}
+            />
+          </div>
 
-          <ParameterSection
-            title="尾部参数"
-            params={params.filter((p) => !p.isOpty)}
-            tempOverrides={tempOverrides}
-            tempValueOverrides={tempValueOverrides}
-            onValueChange={handleValueChange}
-            onToggleChange={handleToggleChange}
-            onResetParameter={handleResetParameter}
-            onResetAllParameters={handleResetAllParameters}
-          />
+          <div className="px-4">
+            <ParameterSection
+              title="尾部参数"
+              params={params.filter((p) => !p.isOpty)}
+              tempOverrides={tempOverrides}
+              tempValueOverrides={tempValueOverrides}
+              onValueChange={handleValueChange}
+              onToggleChange={handleToggleChange}
+              onResetParameter={handleResetParameter}
+              onResetAllParameters={handleResetAllParameters}
+            />
+          </div>
 
-          <ParameterSection
-            title="OPTY 参数"
-            params={params.filter((p) => p.isOpty)}
-            tempOverrides={tempOverrides}
-            tempValueOverrides={tempValueOverrides}
-            onValueChange={handleValueChange}
-            onToggleChange={handleToggleChange}
-            onResetParameter={handleResetParameter}
-            onResetAllParameters={handleResetAllParameters}
-          />
+          <div className="px-4">
+            <ParameterSection
+              title="OPTY 参数"
+              params={params.filter((p) => p.isOpty)}
+              tempOverrides={tempOverrides}
+              tempValueOverrides={tempValueOverrides}
+              onValueChange={handleValueChange}
+              onToggleChange={handleToggleChange}
+              onResetParameter={handleResetParameter}
+              onResetAllParameters={handleResetAllParameters}
+            />
+          </div>
         </div>
       )}
 
-      <ActionButtons
-        selectedCombination={!!selectedCombination}
-        isLoading={isLoading}
-        onRedirect={handleRedirect}
-        onOpenOptions={openOptions}
-      />
+      <div className="px-4">
+        <ActionButtons
+          selectedCombination={!!selectedCombination}
+          isLoading={isLoading}
+          onRedirect={handleRedirect}
+          onOpenOptions={openOptions}
+        />
+      </div>
     </div>
   );
 }

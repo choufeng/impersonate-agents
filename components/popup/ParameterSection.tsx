@@ -27,9 +27,9 @@ export default function ParameterSection({
     (title.includes("OPTY") && tempOverrides.size > 0);
 
   return (
-    <div className="card bg-base-100 shadow-sm">
+    <div className="card bg-base-100 shadow-sm rounded-lg">
       <div className="card-body">
-        <h2 className="card-title">{title}</h2>
+        <h2 className="card-title text-base">{title}</h2>
 
         <div className="space-y-1">
           {params.map((param) => (
