@@ -17,6 +17,9 @@ import {
   setCurrentCombinationInitialized,
   getCurrentImpersonatedAgentId,
   setCurrentImpersonatedAgentId,
+  savePopupTempState,
+  getPopupTempState,
+  clearPopupTempState,
 } from "./lib/storage";
 import {
   buildParametersWithOverrides,
@@ -93,6 +96,20 @@ export default function Popup() {
     }
   }, [selectedCombinationId]);
 
+  // 监听临时状态变化并自动保存
+  useEffect(() => {
+    if (selectedCombination) {
+      saveTempState();
+    }
+  }, [
+    tempAgentId,
+    tempPortId,
+    tempUriId,
+    tempOverrides,
+    tempValueOverrides,
+    selectedCombination,
+  ]);
+
   const loadInitialData = async () => {
     try {
       const allCombinations = await getFormalCombinations();
@@ -127,10 +144,33 @@ export default function Popup() {
         setPort(portData);
         setUri(uriData);
 
-        // 初始化临时基础信息状态
-        setTempAgentId(combination.agentId);
-        setTempPortId(combination.portId);
-        setTempUriId(combination.uriId);
+        // 尝试恢复临时状态
+        const tempState = await getPopupTempState();
+        console.log("🔄 [POPUP] 恢复临时状态:", tempState);
+
+        if (tempState && tempState.combinationId === combinationId) {
+          // 恢复临时基础信息状态
+          console.log("🔄 [POPUP] 临时状态匹配，恢复临时修改");
+          setTempAgentId(tempState.tempAgentId);
+          setTempPortId(tempState.tempPortId);
+          setTempUriId(tempState.tempUriId);
+
+          // 恢复临时修改
+          setTempOverrides(new Map(Object.entries(tempState.tempOverrides)));
+          setTempValueOverrides(
+            new Map(Object.entries(tempState.tempValueOverrides)),
+          );
+        } else {
+          // 初始化临时基础信息状态
+          console.log("🔄 [POPUP] 无临时状态或组合不匹配，使用默认值");
+          setTempAgentId(combination.agentId);
+          setTempPortId(combination.portId);
+          setTempUriId(combination.uriId);
+
+          // 清除临时修改
+          setTempOverrides(new Map());
+          setTempValueOverrides(new Map());
+        }
 
         // 加载所有参数
         const [allTailParams, allOptyParams] = await Promise.all([
@@ -165,16 +205,35 @@ export default function Popup() {
         ];
 
         setParams(combinedParams);
-
-        // 清除临时修改
-        setTempOverrides(new Map());
-        setTempValueOverrides(new Map());
       }
     } catch (error) {
       console.error("Failed to load combination data:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // ===========================
+  // 临时状态持久化
+  // ===========================
+
+  /**
+   * 保存当前的临时状态到存储
+   */
+  const saveTempState = async () => {
+    if (!selectedCombination) return;
+
+    const state = {
+      combinationId: selectedCombination.id,
+      tempAgentId,
+      tempPortId,
+      tempUriId,
+      tempOverrides: Object.fromEntries(tempOverrides),
+      tempValueOverrides: Object.fromEntries(tempValueOverrides),
+    };
+
+    await savePopupTempState(state);
+    console.log("💾 [POPUP] 已保存临时状态:", state);
   };
 
   // ===========================

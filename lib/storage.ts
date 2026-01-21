@@ -549,6 +549,42 @@ export const getCurrentImpersonatedAgentId = async (): Promise<
 };
 
 /**
+ * Popup 临时状态接口
+ */
+export interface PopupTempState {
+  combinationId: string | null;
+  tempAgentId: string | null;
+  tempPortId: string | null;
+  tempUriId: string | null;
+  tempOverrides: Record<string, boolean>; // Map 转为 Object 存储
+  tempValueOverrides: Record<string, string>; // Map 转为 Object 存储
+}
+
+/**
+ * 保存 Popup 的临时状态
+ */
+export const savePopupTempState = async (
+  state: PopupTempState,
+): Promise<void> => {
+  await storage.set("popupTempState", state);
+};
+
+/**
+ * 获取 Popup 的临时状态
+ */
+export const getPopupTempState = async (): Promise<PopupTempState | null> => {
+  const data = await storage.get<PopupTempState>("popupTempState");
+  return data ?? null;
+};
+
+/**
+ * 清除 Popup 的临时状态
+ */
+export const clearPopupTempState = async (): Promise<void> => {
+  await storage.remove("popupTempState");
+};
+
+/**
  * 设置最后选择的组合 ID
  */
 export const setLastSelectedCombinationId = async (
