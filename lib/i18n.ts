@@ -181,6 +181,20 @@ export interface Translations {
     exportFailed: string;
     fileParseFailed: string;
   };
+
+  popup: {
+    selectConfig: string;
+    basicInfo: string;
+    selectAgent: string;
+    selectPort: string;
+    selectUri: string;
+    tailParameters: string;
+    optyParameters: string;
+    resetAll: string;
+    openSettings: string;
+    redirecting: string;
+    redirect: string;
+  };
 }
 
 export const en: Translations = {
@@ -366,6 +380,20 @@ export const en: Translations = {
     exportFailed: "Export failed",
     fileParseFailed: "File parsing failed",
   },
+
+  popup: {
+    selectConfig: "Select configuration...",
+    basicInfo: "Basic Info",
+    selectAgent: "Select Agent",
+    selectPort: "Select Port",
+    selectUri: "Select URI",
+    tailParameters: "Parameters",
+    optyParameters: "OPTY Parameters",
+    resetAll: "Reset All",
+    openSettings: "Open Settings",
+    redirecting: "Redirecting...",
+    redirect: "Redirect",
+  },
 };
 
 export const zh: Translations = {
@@ -548,5 +576,19 @@ export const zh: Translations = {
     exported: "配置已导出",
     exportFailed: "导出失败",
     fileParseFailed: "文件解析失败",
+  },
+
+  popup: {
+    selectConfig: "选择配置...",
+    basicInfo: "基础信息",
+    selectAgent: "请选择 Agent",
+    selectPort: "请选择 Port",
+    selectUri: "请选择 URI",
+    tailParameters: "参数",
+    optyParameters: "OPTY 参数",
+    resetAll: "重置全部",
+    openSettings: "打开设置",
+    redirecting: "跳转中...",
+    redirect: "跳转",
   },
 };

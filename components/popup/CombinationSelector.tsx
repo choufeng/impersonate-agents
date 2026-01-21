@@ -1,4 +1,5 @@
 import type { Combination } from "../../lib/types";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface CombinationSelectorProps {
   combinations: Combination[];
@@ -11,6 +12,8 @@ export default function CombinationSelector({
   selectedCombinationId,
   onCombinationChange,
 }: CombinationSelectorProps) {
+  const { t } = useI18n();
+
   return (
     <div className="mb-4">
       <select
@@ -18,7 +21,7 @@ export default function CombinationSelector({
         value={selectedCombinationId ?? ""}
         onChange={(e) => onCombinationChange(e.target.value)}
       >
-        <option value="">选择配置...</option>
+        <option value="">{t("popup.selectConfig")}</option>
         {combinations.map((combo) => (
           <option key={combo.id} value={combo.id}>
             {combo.title}

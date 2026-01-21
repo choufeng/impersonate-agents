@@ -1,4 +1,5 @@
 import { RocketIcon, SettingsIcon } from "../icons";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface ActionButtonsProps {
   selectedCombination: boolean;
@@ -13,6 +14,8 @@ export default function ActionButtons({
   onRedirect,
   onOpenOptions,
 }: ActionButtonsProps) {
+  const { t } = useI18n();
+
   return (
     <>
       {/* 固定底部：按钮 */}
@@ -20,7 +23,7 @@ export default function ActionButtons({
         <button
           onClick={onOpenOptions}
           className="btn btn-ghost"
-          title="打开设置"
+          title={t("popup.openSettings")}
         >
           <SettingsIcon size={16} />
         </button>
@@ -30,11 +33,11 @@ export default function ActionButtons({
           onClick={onRedirect}
         >
           {isLoading ? (
-            "跳转中..."
+            t("popup.redirecting")
           ) : (
             <>
               <RocketIcon size={16} className="mr-2" />
-              跳转
+              {t("popup.redirect")}
             </>
           )}
         </button>

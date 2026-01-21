@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { Agent, Port, UriEntry, Combination } from "../../lib/types";
 import { getAgents, getPorts, getUris } from "../../lib/storage";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface BasicInfoCardProps {
   combination: Combination | null;
@@ -29,6 +30,7 @@ export default function BasicInfoCard({
   onUpdate,
   isUpdating = false,
 }: BasicInfoCardProps) {
+  const { t } = useI18n();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [ports, setPorts] = useState<Port[]>([]);
   const [uris, setUris] = useState<UriEntry[]>([]);
@@ -99,7 +101,7 @@ export default function BasicInfoCard({
   return (
     <div className="card bg-base-100 shadow-sm rounded-lg">
       <div className="card-body">
-        <h2 className="card-title text-base">基础信息</h2>
+        <h2 className="card-title text-base">{t("popup.basicInfo")}</h2>
 
         <div className="space-y-3">
           {/* Agent Selection */}
@@ -113,7 +115,7 @@ export default function BasicInfoCard({
               onChange={(e) => handleAgentChange(e.target.value)}
               disabled={isUpdating}
             >
-              <option value="">请选择 Agent</option>
+              <option value="">{t("popup.selectAgent")}</option>
               {agents.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.username}
@@ -133,7 +135,7 @@ export default function BasicInfoCard({
               onChange={(e) => handlePortChange(e.target.value)}
               disabled={isUpdating}
             >
-              <option value="">请选择 Port</option>
+              <option value="">{t("popup.selectPort")}</option>
               {ports.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.port}
@@ -154,7 +156,7 @@ export default function BasicInfoCard({
               onChange={(e) => handleUriChange(e.target.value)}
               disabled={isUpdating}
             >
-              <option value="">请选择 URI</option>
+              <option value="">{t("popup.selectUri")}</option>
               {uris.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.uri.length > 35 ? `${u.uri.slice(0, 35)}...` : u.uri}

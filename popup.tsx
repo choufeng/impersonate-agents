@@ -34,12 +34,14 @@ import type {
   Combination,
   TempOverride,
 } from "./lib/types";
+import { I18nProvider, useI18n } from "./lib/I18nProvider";
 import CombinationSelector from "./components/popup/CombinationSelector";
 import BasicInfoCard from "./components/popup/BasicInfoCard";
 import ParameterSection from "./components/popup/ParameterSection";
 import ActionButtons from "./components/popup/ActionButtons";
 
-export default function Popup() {
+function PopupContent() {
+  const { t } = useI18n();
   // ===========================
   // 状态管理
   // ===========================
@@ -499,7 +501,7 @@ export default function Popup() {
 
           <div className="px-4">
             <ParameterSection
-              title="尾部参数"
+              title={t("popup.tailParameters")}
               params={params.filter((p) => !p.isOpty)}
               tempOverrides={tempOverrides}
               tempValueOverrides={tempValueOverrides}
@@ -512,7 +514,7 @@ export default function Popup() {
 
           <div className="px-4">
             <ParameterSection
-              title="OPTY 参数"
+              title={t("popup.optyParameters")}
               params={params.filter((p) => p.isOpty)}
               tempOverrides={tempOverrides}
               tempValueOverrides={tempValueOverrides}
@@ -534,5 +536,13 @@ export default function Popup() {
         />
       </div>
     </div>
+  );
+}
+
+export default function Popup() {
+  return (
+    <I18nProvider>
+      <PopupContent />
+    </I18nProvider>
   );
 }

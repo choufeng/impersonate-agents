@@ -1,5 +1,6 @@
 import ParameterRow from "./ParameterRow";
 import type { TempOverride } from "../../lib/types";
+import { useI18n } from "../../lib/I18nProvider";
 
 interface ParameterSectionProps {
   title: string;
@@ -22,9 +23,11 @@ export default function ParameterSection({
   onResetParameter,
   onResetAllParameters,
 }: ParameterSectionProps) {
+  const { t } = useI18n();
+  const isOptySection = params.length > 0 && params[0].isOpty;
   const hasOverrides =
-    (title.includes("尾") && tempValueOverrides.size > 0) ||
-    (title.includes("OPTY") && tempOverrides.size > 0);
+    (!isOptySection && tempValueOverrides.size > 0) ||
+    (isOptySection && tempOverrides.size > 0);
 
   return (
     <div className="card bg-base-100 shadow-sm rounded-lg">
@@ -49,7 +52,7 @@ export default function ParameterSection({
               className="btn btn-ghost text-warning"
               onClick={onResetAllParameters}
             >
-              重置全部
+              {t("popup.resetAll")}
             </button>
           </div>
         )}
