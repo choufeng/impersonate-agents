@@ -78,15 +78,22 @@ const buildImpersonationURL = (baseURL: string, agent: Agent): string => {
  * 构建查询字符串
  *
  * @param params - 参数列表
- * @returns 查询字符串（如 ?debug=true&verbose=false&lang=true）
+ * @returns 查询字符串（如 ?debug=true&verbose=false&lang=en）
  *
  * 规则：
- * - 所有参数都包含在 URL 中
- * - 值为 "true" 或 "false"（字符串）
+ * - OPTY 参数：输出布尔值 "true" 或 "false"
+ * - Tail 参数：输出实际值（字符串）
  */
 const buildQueryString = (params: TempOverride[]): string => {
   return params
-    .map((p) => `${p.key}=${p.enabled ? "true" : "false"}`)
+    .map((p) => {
+      // OPTY 参数：使用 enabled 属性（布尔值）
+      if (p.isOpty) {
+        return `${p.key}=${p.enabled ? "true" : "false"}`;
+      }
+      // Tail 参数：使用 value 属性（实际值）
+      return `${p.key}=${p.value || ""}`;
+    })
     .join("&");
 };
 
@@ -94,23 +101,17 @@ const buildQueryString = (params: TempOverride[]): string => {
  * 构建目标 URL
  *
  * @param currentUrl - 当前页面的 URL
- * @param combination - 组合配置
+ * @param uri - URI 路径（如 /app/lab）
+ * @param port - 端口号（可选）
  * @param params - 参数列表（包含临时修改）
  * @returns 完整的目标 URL
  */
 const buildTargetURL = (
   currentUrl: string,
-  combination: Combination,
+  uri: string,
+  port: number | null,
   params: TempOverride[],
 ): string => {
-  // 获取 URI 配置
-  // 注意：这里需要从外部传入 URI，因为 Storage 操作在别处
-  // 为了纯函数设计，我们假设 URI 作为参数传入
-  const uri = ""; // 占位符，实际使用时需要传入
-
-  // 获取端口配置
-  const port = null; // 占位符，实际使用时需要传入
-
   // 构建基础 URL
   const baseURL = buildBaseURL(currentUrl, uri, port);
 
@@ -262,8 +263,13 @@ const executeRedirectFlow = async (options: {
     // 这里只负责跳转，不负责存储标记
   }
 
-  // 构建目标 URL
-  const targetURL = buildTargetURL(currentUrl, combination, params);
+  // 构建目标 URL（使用正确的参数）
+  const targetURL = buildTargetURL(
+    currentUrl,
+    uri.uri,
+    port?.port ?? null,
+    params,
+  );
 
   // 跳转到目标 URL
   await redirectTab(targetURL);
