@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./style.css";
 import {
   getFormalCombinations,
@@ -68,6 +68,9 @@ export default function Popup() {
   const [params, setParams] = useState<TempOverride[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // 用于控制是否允许自动保存临时状态（加载完成后才允许）
+  const [enableAutoSave, setEnableAutoSave] = useState(false);
+
   // ===========================
   // 初始化数据加载
   // ===========================
@@ -78,8 +81,8 @@ export default function Popup() {
 
   useEffect(() => {
     if (selectedCombinationId) {
+      setEnableAutoSave(false); // 加载新组合时暂时禁用自动保存
       loadCombinationData(selectedCombinationId);
-      loadInitialData();
     } else {
       setSelectedCombination(null);
       setAgent(null);
@@ -93,22 +96,17 @@ export default function Popup() {
       setTempAgentId(null);
       setTempPortId(null);
       setTempUriId(null);
+      setEnableAutoSave(false);
     }
   }, [selectedCombinationId]);
 
   // 监听临时状态变化并自动保存
   useEffect(() => {
-    if (selectedCombination) {
+    if (selectedCombination && enableAutoSave) {
+      console.log("💾 [POPUP] 临时状态变化，自动保存");
       saveTempState();
     }
-  }, [
-    tempAgentId,
-    tempPortId,
-    tempUriId,
-    tempOverrides,
-    tempValueOverrides,
-    selectedCombination,
-  ]);
+  }, [tempAgentId, tempPortId, tempUriId, tempOverrides, tempValueOverrides]);
 
   const loadInitialData = async () => {
     try {
@@ -205,6 +203,12 @@ export default function Popup() {
         ];
 
         setParams(combinedParams);
+
+        // 数据加载完成后，延迟启用自动保存（避免立即触发保存覆盖刚恢复的状态）
+        setTimeout(() => {
+          setEnableAutoSave(true);
+          console.log("✅ [POPUP] 启用自动保存");
+        }, 100);
       }
     } catch (error) {
       console.error("Failed to load combination data:", error);
