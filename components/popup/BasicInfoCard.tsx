@@ -7,6 +7,9 @@ interface BasicInfoCardProps {
   agent?: Agent | null;
   port?: Port | null;
   uri?: UriEntry | null;
+  tempAgentId?: string | null;
+  tempPortId?: string | null;
+  tempUriId?: string | null;
   onUpdate: (data: {
     agentId: string | null;
     portId: string | null;
@@ -20,6 +23,9 @@ export default function BasicInfoCard({
   agent,
   port,
   uri,
+  tempAgentId,
+  tempPortId,
+  tempUriId,
   onUpdate,
   isUpdating = false,
 }: BasicInfoCardProps) {
@@ -35,10 +41,22 @@ export default function BasicInfoCard({
   }, []);
 
   useEffect(() => {
-    if (agent) setSelectedAgentId(agent.id);
-    if (port) setSelectedPortId(port.id);
-    if (uri) setSelectedUriId(uri.id);
-  }, [agent, port, uri]);
+    if (tempAgentId !== undefined) {
+      setSelectedAgentId(tempAgentId || "");
+    } else if (agent) {
+      setSelectedAgentId(agent.id);
+    }
+    if (tempPortId !== undefined) {
+      setSelectedPortId(tempPortId || "");
+    } else if (port) {
+      setSelectedPortId(port.id);
+    }
+    if (tempUriId !== undefined) {
+      setSelectedUriId(tempUriId || "");
+    } else if (uri) {
+      setSelectedUriId(uri.id);
+    }
+  }, [agent, port, uri, tempAgentId, tempPortId, tempUriId]);
 
   const loadData = async () => {
     const [agentsData, portsData, urisData] = await Promise.all([
@@ -49,11 +67,6 @@ export default function BasicInfoCard({
     setAgents(agentsData);
     setPorts(portsData);
     setUris(urisData);
-
-    // 如果当前有选中值，保持选择
-    if (agent) setSelectedAgentId(agent.id);
-    if (port) setSelectedPortId(port.id);
-    if (uri) setSelectedUriId(uri.id);
   };
 
   const handleAgentChange = (value: string) => {

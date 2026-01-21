@@ -142,34 +142,6 @@ export default function Popup() {
         setPort(portData);
         setUri(uriData);
 
-        // 尝试恢复临时状态
-        const tempState = await getPopupTempState();
-        console.log("🔄 [POPUP] 恢复临时状态:", tempState);
-
-        if (tempState && tempState.combinationId === combinationId) {
-          // 恢复临时基础信息状态
-          console.log("🔄 [POPUP] 临时状态匹配，恢复临时修改");
-          setTempAgentId(tempState.tempAgentId);
-          setTempPortId(tempState.tempPortId);
-          setTempUriId(tempState.tempUriId);
-
-          // 恢复临时修改
-          setTempOverrides(new Map(Object.entries(tempState.tempOverrides)));
-          setTempValueOverrides(
-            new Map(Object.entries(tempState.tempValueOverrides)),
-          );
-        } else {
-          // 初始化临时基础信息状态
-          console.log("🔄 [POPUP] 无临时状态或组合不匹配，使用默认值");
-          setTempAgentId(combination.agentId);
-          setTempPortId(combination.portId);
-          setTempUriId(combination.uriId);
-
-          // 清除临时修改
-          setTempOverrides(new Map());
-          setTempValueOverrides(new Map());
-        }
-
         // 加载所有参数
         const [allTailParams, allOptyParams] = await Promise.all([
           getTailParameters(),
@@ -184,22 +156,69 @@ export default function Popup() {
           combination.optyParameterIds.includes(param.id),
         );
 
-        // 构建 TempOverride 数组
+        // 尝试恢复临时状态
+        const tempState = await getPopupTempState();
+        console.log("🔄 [POPUP] 恢复临时状态:", tempState);
+
+        // 用于构建 params 的临时变量
+        let restoredTempOverrides = new Map<string, boolean>();
+        let restoredTempValueOverrides = new Map<string, string>();
+
+        if (tempState && tempState.combinationId === combinationId) {
+          // 恢复临时基础信息状态
+          console.log("🔄 [POPUP] 临时状态匹配，恢复临时修改");
+          setTempAgentId(tempState.tempAgentId);
+          setTempPortId(tempState.tempPortId);
+          setTempUriId(tempState.tempUriId);
+
+          // 恢复临时修改
+          restoredTempOverrides = new Map(
+            Object.entries(tempState.tempOverrides),
+          );
+          restoredTempValueOverrides = new Map(
+            Object.entries(tempState.tempValueOverrides),
+          );
+          setTempOverrides(restoredTempOverrides);
+          setTempValueOverrides(restoredTempValueOverrides);
+        } else {
+          // 初始化临时基础信息状态
+          console.log("🔄 [POPUP] 无临时状态或组合不匹配，使用默认值");
+          setTempAgentId(combination.agentId);
+          setTempPortId(combination.portId);
+          setTempUriId(combination.uriId);
+
+          // 清除临时修改
+          setTempOverrides(new Map());
+          setTempValueOverrides(new Map());
+        }
+
+        // 构建 TempOverride 数组（应用恢复的临时修改）
         const combinedParams: TempOverride[] = [
-          ...selectedTailParams.map((param) => ({
-            key: param.key,
-            value: param.value,
-            isOpty: false,
-            enabled: true,
-            isModified: false,
-          })),
-          ...selectedOptyParams.map((param) => ({
-            key: `OPTY_${param.key}`,
-            value: param.value.toString(),
-            isOpty: true,
-            enabled: param.value,
-            isModified: false,
-          })),
+          ...selectedTailParams.map((param) => {
+            const hasValueOverride = restoredTempValueOverrides.has(param.key);
+            return {
+              key: param.key,
+              value: hasValueOverride
+                ? (restoredTempValueOverrides.get(param.key) as string)
+                : param.value,
+              isOpty: false,
+              enabled: true,
+              isModified: hasValueOverride,
+            };
+          }),
+          ...selectedOptyParams.map((param) => {
+            const keyWithPrefix = `OPTY_${param.key}`;
+            const hasToggleOverride = restoredTempOverrides.has(keyWithPrefix);
+            return {
+              key: keyWithPrefix,
+              value: param.value.toString(),
+              isOpty: true,
+              enabled: hasToggleOverride
+                ? (restoredTempOverrides.get(keyWithPrefix) as boolean)
+                : param.value,
+              isModified: hasToggleOverride,
+            };
+          }),
         ];
 
         setParams(combinedParams);
@@ -467,6 +486,9 @@ export default function Popup() {
             agent={agent}
             port={port}
             uri={uri}
+            tempAgentId={tempAgentId}
+            tempPortId={tempPortId}
+            tempUriId={tempUriId}
             onUpdate={handleSaveBasicInfo}
             isUpdating={isLoading}
           />
