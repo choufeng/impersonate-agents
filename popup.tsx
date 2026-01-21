@@ -39,12 +39,17 @@ import CombinationSelector from "./components/popup/CombinationSelector";
 import BasicInfoCard from "./components/popup/BasicInfoCard";
 import ParameterSection from "./components/popup/ParameterSection";
 import ActionButtons from "./components/popup/ActionButtons";
+import AddressView from "./components/popup/AddressView";
+
+type PopupView = "impersonate" | "address";
 
 function PopupContent() {
   const { t } = useI18n();
   // ===========================
   // 状态管理
   // ===========================
+
+  const [currentView, setCurrentView] = useState<PopupView>("impersonate");
 
   const [combinations, setCombinations] = useState<Combination[]>([]);
   const [selectedCombinationId, setSelectedCombinationId] = useState<
@@ -466,65 +471,85 @@ function PopupContent() {
     chrome.runtime.openOptionsPage();
   };
 
+  /**
+   * 获取地址按钮处理
+   */
+  const handleFetchAddress = async () => {
+    console.log("📱 [POPUP] ========== 用户点击获取地址按钮 ==========");
+    // TODO: 实现获取地址的逻辑
+  };
+
   // ===========================
   // 主渲染
   // ===========================
+
+  const handleToggleView = () => {
+    setCurrentView((prev) =>
+      prev === "impersonate" ? "address" : "impersonate",
+    );
+  };
 
   return (
     <div
       data-theme="corporate"
       className="w-[360px] h-[600px] py-4 flex flex-col bg-base-300"
     >
-      <div className="px-4">
-        <CombinationSelector
-          combinations={combinations}
-          selectedCombinationId={selectedCombinationId}
-          onCombinationChange={handleCombinationChange}
-        />
-      </div>
-
-      {selectedCombination && (
-        <div className="space-y-4 flex-1 overflow-auto">
+      {currentView === "impersonate" ? (
+        <>
           <div className="px-4">
-            <BasicInfoCard
-              combination={selectedCombination}
-              agent={agent}
-              port={port}
-              uri={uri}
-              tempAgentId={tempAgentId}
-              tempPortId={tempPortId}
-              tempUriId={tempUriId}
-              onUpdate={handleSaveBasicInfo}
-              isUpdating={isLoading}
+            <CombinationSelector
+              combinations={combinations}
+              selectedCombinationId={selectedCombinationId}
+              onCombinationChange={handleCombinationChange}
             />
           </div>
 
-          <div className="px-4">
-            <ParameterSection
-              title={t("popup.tailParameters")}
-              params={params.filter((p) => !p.isOpty)}
-              tempOverrides={tempOverrides}
-              tempValueOverrides={tempValueOverrides}
-              onValueChange={handleValueChange}
-              onToggleChange={handleToggleChange}
-              onResetParameter={handleResetParameter}
-              onResetAllParameters={handleResetAllParameters}
-            />
-          </div>
+          {selectedCombination && (
+            <div className="space-y-4 flex-1 overflow-auto">
+              <div className="px-4">
+                <BasicInfoCard
+                  combination={selectedCombination}
+                  agent={agent}
+                  port={port}
+                  uri={uri}
+                  tempAgentId={tempAgentId}
+                  tempPortId={tempPortId}
+                  tempUriId={tempUriId}
+                  onUpdate={handleSaveBasicInfo}
+                  isUpdating={isLoading}
+                />
+              </div>
 
-          <div className="px-4">
-            <ParameterSection
-              title={t("popup.optyParameters")}
-              params={params.filter((p) => p.isOpty)}
-              tempOverrides={tempOverrides}
-              tempValueOverrides={tempValueOverrides}
-              onValueChange={handleValueChange}
-              onToggleChange={handleToggleChange}
-              onResetParameter={handleResetParameter}
-              onResetAllParameters={handleResetAllParameters}
-            />
-          </div>
-        </div>
+              <div className="px-4">
+                <ParameterSection
+                  title={t("popup.tailParameters")}
+                  params={params.filter((p) => !p.isOpty)}
+                  tempOverrides={tempOverrides}
+                  tempValueOverrides={tempValueOverrides}
+                  onValueChange={handleValueChange}
+                  onToggleChange={handleToggleChange}
+                  onResetParameter={handleResetParameter}
+                  onResetAllParameters={handleResetAllParameters}
+                />
+              </div>
+
+              <div className="px-4">
+                <ParameterSection
+                  title={t("popup.optyParameters")}
+                  params={params.filter((p) => p.isOpty)}
+                  tempOverrides={tempOverrides}
+                  tempValueOverrides={tempValueOverrides}
+                  onValueChange={handleValueChange}
+                  onToggleChange={handleToggleChange}
+                  onResetParameter={handleResetParameter}
+                  onResetAllParameters={handleResetAllParameters}
+                />
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <AddressView />
       )}
 
       <div className="px-4">
@@ -532,7 +557,10 @@ function PopupContent() {
           selectedCombination={!!selectedCombination}
           isLoading={isLoading}
           onRedirect={handleRedirect}
+          onFetchAddress={handleFetchAddress}
           onOpenOptions={openOptions}
+          currentView={currentView}
+          onToggleView={handleToggleView}
         />
       </div>
     </div>

@@ -194,6 +194,11 @@ export interface Translations {
     openSettings: string;
     redirecting: string;
     redirect: string;
+    addressViewPlaceholder: string;
+    switchToAddressView: string;
+    switchToImpersonateView: string;
+    fetchAddress: string;
+    fetching: string;
   };
 }
 
@@ -393,6 +398,11 @@ export const en: Translations = {
     openSettings: "Open Settings",
     redirecting: "Redirecting...",
     redirect: "Redirect",
+    addressViewPlaceholder: "Address view content coming soon",
+    switchToAddressView: "Switch to address view",
+    switchToImpersonateView: "Switch to impersonate view",
+    fetchAddress: "Fetch",
+    fetching: "Fetching...",
   },
 };
 
@@ -590,5 +600,10 @@ export const zh: Translations = {
     openSettings: "打开设置",
     redirecting: "跳转中...",
     redirect: "跳转",
+    addressViewPlaceholder: "地址视图内容即将推出",
+    switchToAddressView: "切换到地址视图",
+    switchToImpersonateView: "切换到模拟视图",
+    fetchAddress: "获取",
+    fetching: "获取中...",
   },
 };

@@ -22,6 +22,9 @@ import {
   Check,
   X,
   RefreshCw,
+  MapPin,
+  AppWindow,
+  PenLine,
 } from "lucide-react";
 
 // 类型定义
@@ -282,6 +285,36 @@ export const RefreshIcon: React.FC<IconProps> = ({
 }) => (
   <IconWrapper className={className}>
     <RefreshCw size={size} />
+  </IconWrapper>
+);
+
+// 地址/位置图标
+export const MapPinIcon: React.FC<IconProps> = ({
+  className = "",
+  size = 20,
+}) => (
+  <IconWrapper className={className}>
+    <MapPin size={size} />
+  </IconWrapper>
+);
+
+// 浏览器窗口图标
+export const AppWindowIcon: React.FC<IconProps> = ({
+  className = "",
+  size = 20,
+}) => (
+  <IconWrapper className={className}>
+    <AppWindow size={size} />
+  </IconWrapper>
+);
+
+// 书写/获取图标
+export const PenLineIcon: React.FC<IconProps> = ({
+  className = "",
+  size = 20,
+}) => (
+  <IconWrapper className={className}>
+    <PenLine size={size} />
   </IconWrapper>
 );
 
