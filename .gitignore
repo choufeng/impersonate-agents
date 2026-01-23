@@ -6,3 +6,6 @@ build
 build/
 
 .env.local
+
+# Convex generated files
+convex/_generated/
