@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useI18n } from "../../lib/I18nProvider";
@@ -42,6 +42,12 @@ export default function AddressView() {
     }
   };
 
+  useEffect(() => {
+    if (randomAddress && typeof randomAddress === "string") {
+      handleCopy();
+    }
+  }, [randomAddress]);
+
   return (
     <div data-tn="address-view" className="flex-1 flex flex-col p-4 space-y-4">
       {/* Upper section - Partner selector */}
@@ -82,7 +88,7 @@ export default function AddressView() {
                 {t("popup.noAddress")}
               </div>
             ) : (
-              <div className="text-center text-base-content text-lg font-medium">
+              <div className="text-left text-base-content text-lg font-medium">
                 {formatAddressForDisplay(randomAddress)}
               </div>
             )
