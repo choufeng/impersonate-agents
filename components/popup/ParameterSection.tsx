@@ -30,8 +30,8 @@ export default function ParameterSection({
     (isOptySection && tempOverrides.size > 0);
 
   return (
-    <div className="card bg-base-100 shadow-sm rounded-lg">
-      <div className="card-body">
+    <div className="card bg-base-100 shadow-sm rounded-lg overflow-hidden">
+      <div className="card-body p-3">
         <h2 className="card-title text-base">{title}</h2>
 
         <div className="space-y-1">

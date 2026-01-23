@@ -199,6 +199,8 @@ export interface Translations {
     switchToImpersonateView: string;
     fetchAddress: string;
     fetching: string;
+    selectAddress: string;
+    addressDisplayPlaceholder: string;
   };
 }
 
@@ -403,6 +405,8 @@ export const en: Translations = {
     switchToImpersonateView: "Switch to impersonate view",
     fetchAddress: "Fetch",
     fetching: "Fetching...",
+    selectAddress: "Select address...",
+    addressDisplayPlaceholder: "Select an address to view details",
   },
 };
 
@@ -605,5 +609,7 @@ export const zh: Translations = {
     switchToImpersonateView: "切换到模拟视图",
     fetchAddress: "获取",
     fetching: "获取中...",
+    selectAddress: "选择地址...",
+    addressDisplayPlaceholder: "选择地址以查看详情",
   },
 };

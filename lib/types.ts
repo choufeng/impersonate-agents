@@ -45,6 +45,7 @@ export interface TailParameter {
   id: string;
   key: string;
   value: string;
+  description?: string;
 }
 
 /**
@@ -55,6 +56,7 @@ export interface OptyParameter {
   id: string;
   key: string; // 存储时不包含OPTY_前缀，构建URL时自动添加
   value: boolean;
+  description?: string;
 }
 
 /**
@@ -87,6 +89,7 @@ export type TempOverride = {
   isModified: boolean;
   isOpty: boolean; // 是否为 OPTY 参数
   value?: string; // 原始值（仅 Tail 参数使用）
+  description?: string; // 参数描述
 };
 
 /**

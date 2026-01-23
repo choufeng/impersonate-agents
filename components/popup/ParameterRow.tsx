@@ -1,5 +1,5 @@
-import { SettingsIcon } from "../icons";
 import type { TempOverride } from "../../lib/types";
+import Tooltip from "../Tooltip";
 
 interface ParameterRowProps {
   param: TempOverride;
@@ -19,14 +19,16 @@ export default function ParameterRow({
   return (
     <div
       key={param.key}
-      className="flex items-center justify-between p-2 hover:bg-base-200 rounded"
+      className="flex items-center justify-between p-2 hover:bg-base-200 rounded gap-2 min-w-0"
     >
-      <span className="text-sm w-1/3 truncate" title={param.key}>
-        {param.key}
-      </span>
-      <div className="flex items-center gap-2 flex-1">
-        {isOpty ? (
-          <>
+      {isOpty ? (
+        <>
+          <div className="flex-1 min-w-0">
+            <span className="text-sm block truncate cursor-default">
+              {param.key.replace(/^OPTY_/, "")}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             {param.isModified && (
               <button
                 className="text-xs btn btn-xs btn-ghost"
@@ -42,12 +44,21 @@ export default function ParameterRow({
               checked={param.enabled}
               onChange={(e) => onToggleChange(param.key, e.target.checked)}
             />
-          </>
-        ) : (
-          <>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex-1 min-w-0">
+            <Tooltip content={param.key} position="top">
+              <span className="text-sm block truncate cursor-default">
+                {param.key}
+              </span>
+            </Tooltip>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 w-24">
             <input
               type="text"
-              className="input input-xs input-bordered flex-1"
+              className="input input-xs input-bordered w-full"
               defaultValue={param.value || ""}
               placeholder="输入值"
               onKeyDown={(e) => {
@@ -70,9 +81,9 @@ export default function ParameterRow({
                 ↩️
               </button>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

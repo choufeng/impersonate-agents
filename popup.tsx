@@ -296,7 +296,7 @@ function PopupContent() {
 
     setParams((prevParams) =>
       prevParams.map((param) =>
-        param.key === key ? { ...param, isModified: true } : param,
+        param.key === key ? { ...param, enabled, isModified: true } : param,
       ),
     );
   };
@@ -492,7 +492,7 @@ function PopupContent() {
   return (
     <div
       data-theme="corporate"
-      className="w-[360px] h-[600px] py-4 flex flex-col bg-base-300"
+      className="w-[360px] h-[600px] py-4 flex flex-col bg-base-300 overflow-x-hidden"
     >
       {currentView === "impersonate" ? (
         <>
@@ -505,7 +505,7 @@ function PopupContent() {
           </div>
 
           {selectedCombination && (
-            <div className="space-y-4 flex-1 overflow-auto">
+            <div className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden">
               <div className="px-4">
                 <BasicInfoCard
                   combination={selectedCombination}

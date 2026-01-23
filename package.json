@@ -8,6 +8,7 @@
     "predev": "node scripts/configure-env.cjs",
     "dev": "cross-env NODE_ENV=development plasmo dev",
     "dev:prod": "node scripts/configure-env.cjs && cross-env NODE_ENV=production plasmo dev",
+    "server": "pnpm convex dev",
     "prebuild": "node scripts/configure-env.cjs",
     "build": "cross-env NODE_ENV=development node scripts/configure-env.cjs && plasmo build",
     "build:prod": "cross-env NODE_ENV=production node scripts/configure-env.cjs && plasmo build",
@@ -15,6 +16,7 @@
   },
   "dependencies": {
     "@plasmohq/storage": "^1.15.0",
+    "convex": "^1.21.0",
     "lucide-react": "^0.562.0",
     "plasmo": "^0.90.5",
     "react": "^18.2.0",
@@ -32,6 +34,11 @@
     "prettier": "^3.3.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.5.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "manifest": {
     "host_permissions": [

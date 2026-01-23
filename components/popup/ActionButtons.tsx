@@ -6,6 +6,7 @@ import {
   PenLineIcon,
 } from "../icons";
 import { useI18n } from "../../lib/I18nProvider";
+import Tooltip from "../Tooltip";
 
 type PopupView = "impersonate" | "address";
 
@@ -36,30 +37,35 @@ export default function ActionButtons({
     <>
       {/* 固定底部：按钮 */}
       <div className="flex gap-2 mt-4">
-        <button
-          data-tn="settings-button"
-          onClick={onOpenOptions}
-          className="btn btn-ghost"
-          title={t("popup.openSettings")}
-        >
-          <SettingsIcon size={16} />
-        </button>
-        <button
-          data-tn="toggle-view-button"
-          onClick={onToggleView}
-          className="btn btn-ghost"
-          title={
+        <Tooltip content={t("popup.openSettings")} position="top">
+          <button
+            data-tn="settings-button"
+            onClick={onOpenOptions}
+            className="btn btn-ghost"
+          >
+            <SettingsIcon size={16} />
+          </button>
+        </Tooltip>
+        <Tooltip
+          content={
             currentView === "impersonate"
               ? t("popup.switchToAddressView")
               : t("popup.switchToImpersonateView")
           }
+          position="top"
         >
-          {currentView === "impersonate" ? (
-            <MapPinIcon size={16} />
-          ) : (
-            <AppWindowIcon size={16} />
-          )}
-        </button>
+          <button
+            data-tn="toggle-view-button"
+            onClick={onToggleView}
+            className="btn btn-ghost"
+          >
+            {currentView === "impersonate" ? (
+              <MapPinIcon size={16} />
+            ) : (
+              <AppWindowIcon size={16} />
+            )}
+          </button>
+        </Tooltip>
         {isAddressView ? (
           <button
             data-tn="fetch-address-button"
