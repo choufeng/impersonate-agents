@@ -23,6 +23,7 @@ export interface Translations {
     export: string;
     import: string;
     copy: string;
+    copied: string;
     noData: string;
   };
 
@@ -229,6 +230,7 @@ export const en: Translations = {
     export: "Export",
     import: "Import",
     copy: "Copy",
+    copied: "Copied!",
     noData: "No data",
   },
 
@@ -437,6 +439,7 @@ export const zh: Translations = {
     export: "导出",
     import: "导入",
     copy: "复制",
+    copied: "已复制!",
     noData: "暂无数据",
   },
 
