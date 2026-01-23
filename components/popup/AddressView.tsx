@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
+import { useStorage } from "@plasmohq/storage/hook";
 import { api } from "../../convex/_generated/api";
 import { useI18n } from "../../lib/I18nProvider";
 
 export default function AddressView() {
   const { t } = useI18n();
-  const [selectedPartner, setSelectedPartner] = useState("");
+  const [selectedPartner, setSelectedPartner] = useStorage<string>(
+    "addressView.selectedPartner",
+    "",
+  );
+  const [lastAddress, setLastAddress] = useStorage<string | null>(
+    "addressView.lastAddress",
+    null,
+  );
   const [refreshKey, setRefreshKey] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -31,10 +39,11 @@ export default function AddressView() {
   };
 
   const handleCopy = async () => {
-    if (!randomAddress || typeof randomAddress !== "string") return;
+    const addressToCopy = randomAddress ?? lastAddress;
+    if (!addressToCopy || typeof addressToCopy !== "string") return;
 
     try {
-      await navigator.clipboard.writeText(randomAddress);
+      await navigator.clipboard.writeText(addressToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -44,9 +53,12 @@ export default function AddressView() {
 
   useEffect(() => {
     if (randomAddress && typeof randomAddress === "string") {
+      setLastAddress(randomAddress);
       handleCopy();
     }
   }, [randomAddress]);
+
+  const displayAddress = randomAddress ?? lastAddress;
 
   return (
     <div data-tn="address-view" className="flex-1 flex flex-col p-4 space-y-4">
@@ -79,17 +91,17 @@ export default function AddressView() {
               {t("popup.loading")}
             </div>
           ) : selectedPartner ? (
-            randomAddress === undefined ? (
+            randomAddress === undefined && !lastAddress ? (
               <div className="text-center text-base-content/50">
                 {t("popup.loading")}
               </div>
-            ) : randomAddress === null ? (
+            ) : !displayAddress ? (
               <div className="text-center text-base-content/50">
                 {t("popup.noAddress")}
               </div>
             ) : (
               <div className="text-left text-base-content text-lg font-medium">
-                {formatAddressForDisplay(randomAddress)}
+                {formatAddressForDisplay(displayAddress)}
               </div>
             )
           ) : (
@@ -98,7 +110,7 @@ export default function AddressView() {
             </div>
           )}
         </div>
-        {selectedPartner && randomAddress && (
+        {selectedPartner && displayAddress && (
           <div className="card-actions justify-center p-3 pt-0 gap-2">
             <button
               data-tn="copy-address-btn"
