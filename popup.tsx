@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { ConvexProvider } from "convex/react";
+import { useStorage } from "@plasmohq/storage/hook";
 import { convex } from "./lib/convex";
 import "./style.css";
 import {
@@ -51,7 +52,10 @@ function PopupContent() {
   // 状态管理
   // ===========================
 
-  const [currentView, setCurrentView] = useState<PopupView>("impersonate");
+  const [currentView, setCurrentView] = useStorage<PopupView>(
+    "popup.currentView",
+    "impersonate",
+  );
 
   const [combinations, setCombinations] = useState<Combination[]>([]);
   const [selectedCombinationId, setSelectedCombinationId] = useState<
