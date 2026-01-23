@@ -201,6 +201,7 @@ export interface Translations {
     fetching: string;
     selectAddress: string;
     addressDisplayPlaceholder: string;
+    loading: string;
   };
 }
 
@@ -407,6 +408,7 @@ export const en: Translations = {
     fetching: "Fetching...",
     selectAddress: "Select address...",
     addressDisplayPlaceholder: "Select an address to view details",
+    loading: "Loading...",
   },
 };
 
@@ -611,5 +613,6 @@ export const zh: Translations = {
     fetching: "获取中...",
     selectAddress: "选择地址...",
     addressDisplayPlaceholder: "选择地址以查看详情",
+    loading: "加载中...",
   },
 };

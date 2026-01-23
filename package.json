@@ -50,6 +50,9 @@
       "scripting",
       "storage",
       "tabs"
-    ]
+    ],
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://*.convex.cloud wss://*.convex.cloud"
+    }
   }
 }

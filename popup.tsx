@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { ConvexProvider } from "convex/react";
+import { convex } from "./lib/convex";
 import "./style.css";
 import {
   getFormalCombinations,
@@ -569,8 +571,10 @@ function PopupContent() {
 
 export default function Popup() {
   return (
-    <I18nProvider>
-      <PopupContent />
-    </I18nProvider>
+    <ConvexProvider client={convex}>
+      <I18nProvider>
+        <PopupContent />
+      </I18nProvider>
+    </ConvexProvider>
   );
 }
