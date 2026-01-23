@@ -34,3 +34,29 @@ export const addAddressToPartner = mutation({
     return { success: true, addresses: updatedAddresses };
   },
 });
+
+export const addMultipleAddressesToPartner = mutation({
+  args: {
+    name: v.string(),
+    addresses: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const partner = await ctx.db
+      .query("partners")
+      .filter((q) => q.eq(q.field("name"), args.name))
+      .first();
+
+    if (!partner) {
+      throw new Error(`Partner with name "${args.name}" not found`);
+    }
+
+    const currentAddresses = partner.addresses ?? [];
+    const updatedAddresses = [...currentAddresses, ...args.addresses];
+
+    await ctx.db.patch(partner._id, {
+      addresses: updatedAddresses,
+    });
+
+    return { success: true, addresses: updatedAddresses };
+  },
+});
