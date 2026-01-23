@@ -85,6 +85,7 @@ export const addMultipleAddressesToPartner = mutation({
 export const getRandomAddress = query({
   args: {
     name: v.string(),
+    refreshKey: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const partner = await ctx.db
