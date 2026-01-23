@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { useStorage } from "@plasmohq/storage/hook";
 import { api } from "../../convex/_generated/api";
 import { useI18n } from "../../lib/I18nProvider";
@@ -24,6 +24,7 @@ export default function AddressView() {
     api.partners.getRandomAddress,
     selectedPartner ? { name: selectedPartner, refreshKey } : "skip",
   );
+  const removeAddress = useMutation(api.partners.removeAddressFromPartner);
 
   const handleRefetch = () => {
     setRefreshKey((prev) => prev + 1);
@@ -65,6 +66,21 @@ export default function AddressView() {
   }, [randomAddress]);
 
   const displayAddress = randomAddress ?? lastAddress;
+
+  const handleReportWrongAddress = async () => {
+    if (!selectedPartner || !displayAddress) return;
+
+    try {
+      await removeAddress({
+        name: selectedPartner,
+        address: displayAddress,
+      });
+      setLastAddress(null);
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      console.error("Failed to remove address:", error);
+    }
+  };
 
   return (
     <>
@@ -127,23 +143,32 @@ export default function AddressView() {
             )}
           </div>
           {selectedPartner && displayAddress && (
-            <div className="card-actions justify-center p-3 pt-0 gap-2">
+            <div className="card-actions justify-center p-3 pt-0 gap-2 flex-col">
+              <div className="flex gap-2 w-full justify-center">
+                <button
+                  data-tn="copy-address-btn"
+                  className="btn btn-sm btn-outline"
+                  onClick={handleCopy}
+                >
+                  {copied ? t("common.copied") : t("common.copy")}
+                </button>
+                <button
+                  data-tn="refetch-address-btn"
+                  className="btn btn-sm btn-primary"
+                  onClick={handleRefetch}
+                  disabled={randomAddress === undefined}
+                >
+                  {randomAddress === undefined
+                    ? t("popup.fetching")
+                    : t("popup.fetchAddress")}
+                </button>
+              </div>
               <button
-                data-tn="copy-address-btn"
-                className="btn btn-sm btn-outline"
-                onClick={handleCopy}
+                data-tn="report-wrong-address-btn"
+                className="btn btn-sm btn-error btn-outline w-full"
+                onClick={handleReportWrongAddress}
               >
-                {copied ? t("common.copied") : t("common.copy")}
-              </button>
-              <button
-                data-tn="refetch-address-btn"
-                className="btn btn-sm btn-primary"
-                onClick={handleRefetch}
-                disabled={randomAddress === undefined}
-              >
-                {randomAddress === undefined
-                  ? t("popup.fetching")
-                  : t("popup.fetchAddress")}
+                {t("popup.reportWrongAddress")}
               </button>
             </div>
           )}

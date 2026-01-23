@@ -205,6 +205,7 @@ export interface Translations {
     addressDisplayPlaceholder: string;
     loading: string;
     noAddress: string;
+    reportWrongAddress: string;
   };
 }
 
@@ -415,6 +416,7 @@ export const en: Translations = {
     addressDisplayPlaceholder: "Select an address to view details",
     loading: "Loading...",
     noAddress: "No address available",
+    reportWrongAddress: "Report: This is a wrong address",
   },
 };
 
@@ -623,5 +625,6 @@ export const zh: Translations = {
     addressDisplayPlaceholder: "选择地址以查看详情",
     loading: "加载中...",
     noAddress: "暂无地址",
+    reportWrongAddress: "报告：这是一个错误的地址",
   },
 };
