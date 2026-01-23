@@ -12,7 +12,11 @@
     "prebuild": "node scripts/configure-env.cjs",
     "build": "cross-env NODE_ENV=development node scripts/configure-env.cjs && plasmo build",
     "build:prod": "cross-env NODE_ENV=production node scripts/configure-env.cjs && plasmo build",
-    "package": "plasmo package"
+    "package": "plasmo package",
+    "db:export": "node scripts/export-data.cjs",
+    "db:import": "node scripts/import-data.cjs",
+    "db:import:prod": "node scripts/import-data.cjs --prod",
+    "db:deploy": "node scripts/production-import-helper.cjs"
   },
   "dependencies": {
     "@plasmohq/storage": "^1.15.0",
