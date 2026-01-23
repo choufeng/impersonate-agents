@@ -9,6 +9,27 @@ export const getAllPartnerNames = query({
   },
 });
 
+export const getPartnerAddressCount = query({
+  args: {
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const partner = await ctx.db
+      .query("partners")
+      .filter((q) => q.eq(q.field("name"), args.name))
+      .first();
+
+    if (!partner) {
+      return { count: 0, exists: false };
+    }
+
+    return {
+      count: partner.addresses?.length ?? 0,
+      exists: true,
+    };
+  },
+});
+
 export const addAddressToPartner = mutation({
   args: {
     name: v.string(),
@@ -58,5 +79,29 @@ export const addMultipleAddressesToPartner = mutation({
     });
 
     return { success: true, addresses: updatedAddresses };
+  },
+});
+
+export const getRandomAddress = query({
+  args: {
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const partner = await ctx.db
+      .query("partners")
+      .filter((q) => q.eq(q.field("name"), args.name))
+      .first();
+
+    if (!partner) {
+      return null;
+    }
+
+    const addresses = partner.addresses ?? [];
+    if (addresses.length === 0) {
+      return null;
+    }
+
+    const randomIndex = Math.floor(Math.random() * addresses.length);
+    return addresses[randomIndex];
   },
 });

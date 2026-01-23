@@ -8,6 +8,10 @@ export default function AddressView() {
   const [selectedPartner, setSelectedPartner] = useState("");
 
   const partnerNames = useQuery(api.partners.getAllPartnerNames);
+  const randomAddress = useQuery(
+    api.partners.getRandomAddress,
+    selectedPartner ? { name: selectedPartner } : "skip",
+  );
 
   return (
     <div data-tn="address-view" className="flex-1 flex flex-col p-4 space-y-4">
@@ -39,7 +43,11 @@ export default function AddressView() {
             {partnerNames === undefined
               ? t("popup.loading")
               : selectedPartner
-                ? selectedPartner
+                ? randomAddress === undefined
+                  ? t("popup.loading")
+                  : randomAddress === null
+                    ? t("popup.noAddress")
+                    : randomAddress
                 : t("popup.addressDisplayPlaceholder")}
           </div>
         </div>

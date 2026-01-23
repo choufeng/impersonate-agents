@@ -202,6 +202,7 @@ export interface Translations {
     selectAddress: string;
     addressDisplayPlaceholder: string;
     loading: string;
+    noAddress: string;
   };
 }
 
@@ -409,6 +410,7 @@ export const en: Translations = {
     selectAddress: "Select address...",
     addressDisplayPlaceholder: "Select an address to view details",
     loading: "Loading...",
+    noAddress: "No address available",
   },
 };
 
@@ -614,5 +616,6 @@ export const zh: Translations = {
     selectAddress: "选择地址...",
     addressDisplayPlaceholder: "选择地址以查看详情",
     loading: "加载中...",
+    noAddress: "暂无地址",
   },
 };
