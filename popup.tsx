@@ -477,14 +477,6 @@ function PopupContent() {
     chrome.runtime.openOptionsPage();
   };
 
-  /**
-   * 获取地址按钮处理
-   */
-  const handleFetchAddress = async () => {
-    console.log("📱 [POPUP] ========== 用户点击获取地址按钮 ==========");
-    // TODO: 实现获取地址的逻辑
-  };
-
   // ===========================
   // 主渲染
   // ===========================
@@ -563,7 +555,6 @@ function PopupContent() {
           selectedCombination={!!selectedCombination}
           isLoading={isLoading}
           onRedirect={handleRedirect}
-          onFetchAddress={handleFetchAddress}
           onOpenOptions={openOptions}
           currentView={currentView}
           onToggleView={handleToggleView}

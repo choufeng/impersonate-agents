@@ -3,6 +3,7 @@ import { useQuery } from "convex/react";
 import { useStorage } from "@plasmohq/storage/hook";
 import { api } from "../../convex/_generated/api";
 import { useI18n } from "../../lib/I18nProvider";
+import Toast from "../options/Toast";
 
 export default function AddressView() {
   const { t } = useI18n();
@@ -16,6 +17,7 @@ export default function AddressView() {
   );
   const [refreshKey, setRefreshKey] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const partnerNames = useQuery(api.partners.getAllPartnerNames);
   const randomAddress = useQuery(
@@ -45,7 +47,11 @@ export default function AddressView() {
     try {
       await navigator.clipboard.writeText(addressToCopy);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setShowToast(true);
+      setTimeout(() => {
+        setCopied(false);
+        setShowToast(false);
+      }, 3000);
     } catch (error) {
       console.error("Failed to copy address:", error);
     }
@@ -61,77 +67,88 @@ export default function AddressView() {
   const displayAddress = randomAddress ?? lastAddress;
 
   return (
-    <div data-tn="address-view" className="flex-1 flex flex-col p-4 space-y-4">
-      {/* Upper section - Partner selector */}
-      <div data-tn="partner-selector">
-        <select
-          data-tn="partner-select"
-          className="select select-bordered w-full h-10"
-          value={selectedPartner}
-          onChange={(e) => setSelectedPartner(e.target.value)}
-          disabled={partnerNames === undefined}
-        >
-          <option value="">{t("popup.selectAddress")}</option>
-          {partnerNames?.map((name: string) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-      </div>
+    <>
+      <Toast
+        show={showToast}
+        message={t("common.copied")}
+        type="success"
+        onClose={() => setShowToast(false)}
+      />
+      <div
+        data-tn="address-view"
+        className="flex-1 flex flex-col p-4 space-y-4"
+      >
+        {/* Upper section - Partner selector */}
+        <div data-tn="partner-selector">
+          <select
+            data-tn="partner-select"
+            className="select select-bordered w-full h-10"
+            value={selectedPartner}
+            onChange={(e) => setSelectedPartner(e.target.value)}
+            disabled={partnerNames === undefined}
+          >
+            <option value="">{t("popup.selectAddress")}</option>
+            {partnerNames?.map((name: string) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* Display area - Card */}
-      <div className="card bg-base-100 shadow-sm rounded-lg flex-1 flex flex-col">
-        <div
-          data-tn="address-display-card"
-          className="card-body p-3 flex-1 flex items-center justify-center"
-        >
-          {partnerNames === undefined ? (
-            <div className="text-center text-base-content/50">
-              {t("popup.loading")}
-            </div>
-          ) : selectedPartner ? (
-            randomAddress === undefined && !lastAddress ? (
+        {/* Display area - Card */}
+        <div className="card bg-base-100 shadow-sm rounded-lg flex-1 flex flex-col">
+          <div
+            data-tn="address-display-card"
+            className="card-body p-3 flex-1 flex items-center justify-center"
+          >
+            {partnerNames === undefined ? (
               <div className="text-center text-base-content/50">
                 {t("popup.loading")}
               </div>
-            ) : !displayAddress ? (
-              <div className="text-center text-base-content/50">
-                {t("popup.noAddress")}
-              </div>
+            ) : selectedPartner ? (
+              randomAddress === undefined && !lastAddress ? (
+                <div className="text-center text-base-content/50">
+                  {t("popup.loading")}
+                </div>
+              ) : !displayAddress ? (
+                <div className="text-center text-base-content/50">
+                  {t("popup.noAddress")}
+                </div>
+              ) : (
+                <div className="text-left text-base-content text-lg font-medium">
+                  {formatAddressForDisplay(displayAddress)}
+                </div>
+              )
             ) : (
-              <div className="text-left text-base-content text-lg font-medium">
-                {formatAddressForDisplay(displayAddress)}
+              <div className="text-center text-base-content/50">
+                {t("popup.addressDisplayPlaceholder")}
               </div>
-            )
-          ) : (
-            <div className="text-center text-base-content/50">
-              {t("popup.addressDisplayPlaceholder")}
+            )}
+          </div>
+          {selectedPartner && displayAddress && (
+            <div className="card-actions justify-center p-3 pt-0 gap-2">
+              <button
+                data-tn="copy-address-btn"
+                className="btn btn-sm btn-outline"
+                onClick={handleCopy}
+              >
+                {copied ? t("common.copied") : t("common.copy")}
+              </button>
+              <button
+                data-tn="refetch-address-btn"
+                className="btn btn-sm btn-primary"
+                onClick={handleRefetch}
+                disabled={randomAddress === undefined}
+              >
+                {randomAddress === undefined
+                  ? t("popup.fetching")
+                  : t("popup.fetchAddress")}
+              </button>
             </div>
           )}
         </div>
-        {selectedPartner && displayAddress && (
-          <div className="card-actions justify-center p-3 pt-0 gap-2">
-            <button
-              data-tn="copy-address-btn"
-              className="btn btn-sm btn-outline"
-              onClick={handleCopy}
-            >
-              {copied ? t("common.copied") : t("common.copy")}
-            </button>
-            <button
-              data-tn="refetch-address-btn"
-              className="btn btn-sm btn-primary"
-              onClick={handleRefetch}
-              disabled={randomAddress === undefined}
-            >
-              {randomAddress === undefined
-                ? t("popup.fetching")
-                : t("popup.fetchAddress")}
-            </button>
-          </div>
-        )}
       </div>
-    </div>
+    </>
   );
 }

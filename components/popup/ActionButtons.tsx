@@ -14,7 +14,6 @@ interface ActionButtonsProps {
   selectedCombination: boolean;
   isLoading: boolean;
   onRedirect: () => void;
-  onFetchAddress: () => void;
   onOpenOptions: () => void;
   currentView: PopupView;
   onToggleView: () => void;
@@ -24,7 +23,6 @@ export default function ActionButtons({
   selectedCombination,
   isLoading,
   onRedirect,
-  onFetchAddress,
   onOpenOptions,
   currentView,
   onToggleView,
@@ -66,23 +64,7 @@ export default function ActionButtons({
             )}
           </button>
         </Tooltip>
-        {isAddressView ? (
-          <button
-            data-tn="fetch-address-button"
-            className="btn flex-1 bg-purple-500 hover:bg-purple-600 text-white border-purple-500 hover:border-purple-600"
-            disabled={isLoading}
-            onClick={onFetchAddress}
-          >
-            {isLoading ? (
-              t("popup.fetching")
-            ) : (
-              <>
-                <PenLineIcon size={16} className="mr-2" />
-                {t("popup.fetchAddress")}
-              </>
-            )}
-          </button>
-        ) : (
+        {!isAddressView && (
           <button
             data-tn="redirect-button"
             className="btn btn-success flex-1"
