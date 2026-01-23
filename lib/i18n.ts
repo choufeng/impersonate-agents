@@ -24,6 +24,7 @@ export interface Translations {
     import: string;
     copy: string;
     copied: string;
+    autoCopiedToClipboard: string;
     noData: string;
   };
 
@@ -231,6 +232,7 @@ export const en: Translations = {
     import: "Import",
     copy: "Copy",
     copied: "Copied!",
+    autoCopiedToClipboard: "Auto-copied to clipboard",
     noData: "No data",
   },
 
@@ -440,6 +442,7 @@ export const zh: Translations = {
     import: "导入",
     copy: "复制",
     copied: "已复制!",
+    autoCopiedToClipboard: "已自动复制到剪贴板",
     noData: "暂无数据",
   },
 

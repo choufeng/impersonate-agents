@@ -70,7 +70,7 @@ export default function AddressView() {
     <>
       <Toast
         show={showToast}
-        message={t("common.copied")}
+        message={t("common.autoCopiedToClipboard")}
         type="success"
         onClose={() => setShowToast(false)}
       />
