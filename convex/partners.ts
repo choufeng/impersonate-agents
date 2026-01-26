@@ -30,6 +30,24 @@ export const getPartnerAddressCount = query({
   },
 });
 
+export const getPartnerAddresses = query({
+  args: {
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const partner = await ctx.db
+      .query("partners")
+      .filter((q) => q.eq(q.field("name"), args.name))
+      .first();
+
+    if (!partner) {
+      return null;
+    }
+
+    return partner.addresses ?? [];
+  },
+});
+
 export const addAddressToPartner = mutation({
   args: {
     name: v.string(),
