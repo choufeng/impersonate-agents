@@ -60,8 +60,11 @@ export default function AddressView() {
 
   useEffect(() => {
     if (randomAddress && typeof randomAddress === "string") {
-      setLastAddress(randomAddress);
-      handleCopy();
+      // 只在地址真正改变时才自动复制
+      if (randomAddress !== lastAddress) {
+        setLastAddress(randomAddress);
+        handleCopy();
+      }
     }
   }, [randomAddress]);
 
