@@ -100,7 +100,7 @@ export default function BasicInfoCard({
   };
 
   return (
-    <div className="card bg-base-100 shadow-sm rounded-lg overflow-hidden">
+    <div className="card bg-base-100 shadow-sm rounded-lg overflow-visible">
       <div className="card-body p-3">
         <h2 className="card-title text-base">{t("popup.basicInfo")}</h2>
 
