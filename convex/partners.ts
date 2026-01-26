@@ -102,7 +102,19 @@ export const getRandomAddress = query({
       return null;
     }
 
-    const randomIndex = Math.floor(Math.random() * addresses.length);
+    // 使用 refreshKey + 当前时间戳 + partner名称 生成种子
+    // 这样每次调用都会得到不同的随机结果
+    const seed = (args.refreshKey ?? 0) + Date.now() + args.name.length;
+    
+    // 简单的伪随机算法（线性同余生成器）
+    const pseudoRandom = (seed: number) => {
+      const a = 1664525;
+      const c = 1013904223;
+      const m = 2 ** 32;
+      return ((a * seed + c) % m) / m;
+    };
+    
+    const randomIndex = Math.floor(pseudoRandom(seed) * addresses.length);
     return addresses[randomIndex];
   },
 });
