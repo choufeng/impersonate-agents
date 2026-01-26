@@ -143,30 +143,29 @@ export default function AddressView() {
             )}
           </div>
           {selectedPartner && displayAddress && (
-            <div className="card-actions justify-center p-3 pt-0 gap-2">
-              <button
-                data-tn="copy-address-btn"
-                className="btn btn-sm btn-outline"
-                style={{ flex: "0.8" }}
-                onClick={handleCopy}
-              >
-                {copied ? t("common.copied") : t("common.copy")}
-              </button>
-              <button
-                data-tn="refetch-address-btn"
-                className="btn btn-sm btn-primary"
-                style={{ flex: "1.2" }}
-                onClick={handleRefetch}
-                disabled={randomAddress === undefined}
-              >
-                {randomAddress === undefined
-                  ? t("popup.fetching")
-                  : t("popup.fetchAddress")}
-              </button>
+            <div className="card-actions justify-center p-3 pt-0 gap-2 flex-col">
+              <div className="flex gap-2 w-full">
+                <button
+                  data-tn="copy-address-btn"
+                  className="btn btn-sm btn-outline flex-1"
+                  onClick={handleCopy}
+                >
+                  {copied ? t("common.copied") : t("common.copy")}
+                </button>
+                <button
+                  data-tn="refetch-address-btn"
+                  className="btn btn-sm btn-primary flex-1"
+                  onClick={handleRefetch}
+                  disabled={randomAddress === undefined}
+                >
+                  {randomAddress === undefined
+                    ? t("popup.fetching")
+                    : t("popup.fetchAddress")}
+                </button>
+              </div>
               <button
                 data-tn="report-wrong-address-btn"
-                className="btn btn-sm btn-error btn-outline"
-                style={{ flex: "1.5" }}
+                className="btn btn-sm btn-error btn-outline w-full"
                 onClick={handleReportWrongAddress}
               >
                 {t("popup.reportWrongAddress")}
