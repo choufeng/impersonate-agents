@@ -15,7 +15,7 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 const config = {
   development: {
     name: "impersonate-agents-dev",
-    displayName: "IA - Tools for Development",
+    displayName: "IA - Tools for Development (Dev)",
     version: packageJson.version,
     buildDir: "build/chrome-mv3-dev",
   },
