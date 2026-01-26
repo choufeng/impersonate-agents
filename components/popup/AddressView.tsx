@@ -14,6 +14,10 @@ export default function AddressView() {
     "addressView.lastAddress",
     null,
   );
+  const [lastPartner, setLastPartner] = useStorage<string>(
+    "addressView.lastPartner",
+    "",
+  );
   const [cachedPartnerNames, setCachedPartnerNames] = useStorage<string[]>(
     "addressView.cachedPartnerNames",
     [],
@@ -24,8 +28,11 @@ export default function AddressView() {
 
   const partnerNames = useQuery(api.partners.getAllPartnerNames);
 
+  // 检测 partner 是否改变
+  const partnerChanged = selectedPartner !== lastPartner;
+  
   const shouldSkipAddressQuery =
-    !selectedPartner || (lastAddress !== null && refreshKey === 0);
+    !selectedPartner || (lastAddress !== null && refreshKey === 0 && !partnerChanged);
   const randomAddress = useQuery(
     api.partners.getRandomAddress,
     shouldSkipAddressQuery ? "skip" : { name: selectedPartner, refreshKey },
@@ -71,6 +78,15 @@ export default function AddressView() {
       console.error("Failed to copy address:", error);
     }
   };
+
+  // 当 partner 改变时，重置状态
+  useEffect(() => {
+    if (partnerChanged && selectedPartner) {
+      setLastPartner(selectedPartner);
+      setLastAddress(null);
+      setRefreshKey(0);
+    }
+  }, [selectedPartner, partnerChanged]);
 
   useEffect(() => {
     if (randomAddress && typeof randomAddress === "string") {
