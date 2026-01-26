@@ -1,1 +1,18 @@
 .DS_Store
+node_modules
+dist
+build
+.plasmo
+build/
+
+.env.local
+
+# Convex generated files
+convex/_generated/
+
+# Database exports (may contain sensitive data)
+*.jsonl
+*.zip
+data-export.jsonl
+data-export.zip
+backup/database/

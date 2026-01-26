@@ -1,0 +1,31 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "*": "allow",
+    "bash": {
+      "*": "ask",
+      "pnpm *": "allow",
+      "node *": "allow",
+      "plasmo *": "allow",
+      "npx *": "deny",
+      "git *": "allow",
+      "git push *": "deny",
+      "ls *": "allow",
+      "cat *": "allow",
+      "mkdir *": "allow",
+      "cp *": "allow",
+      "mv *": "allow",
+      "rm *": "ask",
+      "rm -rf *": "deny"
+    },
+    "edit": "allow",
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    },
+    "external_directory": "ask"
+  },
+  "model": "opencode/big-pickle"
+}
