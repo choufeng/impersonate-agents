@@ -2,7 +2,16 @@
 export default {
   mode: "jit",
   darkMode: "class",
-  content: ["./**/*.tsx", "./**/*.ts", "./**/*.html"],
+  content: [
+    "./popup.tsx",
+    "./options.tsx",
+    "./newtab.tsx",
+    "./sidepanel.tsx",
+    "./tabs/**/*.{ts,tsx}",
+    "./contents/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./lib/**/*.{ts,tsx}",
+  ],
   theme: {
     extend: {
       colors: {

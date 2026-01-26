@@ -7,18 +7,22 @@ const path = require("path");
 
 const isProduction = process.env.NODE_ENV === "production";
 
-// Configuration
+// Read package.json to get version
+const packageJsonPath = path.join(__dirname, "..", "package.json");
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+
+// Configuration - version comes from package.json for both environments
 const config = {
   development: {
     name: "impersonate-agents-dev",
     displayName: "IA - Development",
-    version: "1.1.0-dev",
+    version: packageJson.version,
     buildDir: "build/chrome-mv3-dev",
   },
   production: {
     name: "impersonate-agents",
     displayName: "IA",
-    version: "1.1.0",
+    version: packageJson.version,
     buildDir: "build/chrome-mv3-prod",
   },
 }[isProduction ? "production" : "development"];
