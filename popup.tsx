@@ -221,7 +221,7 @@ function PopupContent() {
             };
           }),
           ...selectedOptyParams.map((param) => {
-            const keyWithPrefix = `OPTY_${param.key}`;
+            const keyWithPrefix = `opty_${param.key}`;
             const hasToggleOverride = restoredTempOverrides.has(keyWithPrefix);
             return {
               key: keyWithPrefix,
