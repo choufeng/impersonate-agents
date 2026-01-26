@@ -33,6 +33,18 @@ const isLocalDomain = (url: string): boolean => {
   }
 };
 
+/**
+ * 判断是否为开发域名（以 dev. 开头）
+ */
+const isDevDomain = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname.startsWith('dev.');
+  } catch {
+    return false;
+  }
+};
+
 // ============================================================================
 // URL 构建基础函数
 // ============================================================================
@@ -53,10 +65,18 @@ const buildBaseURL = (
   const url = new URL(currentUrl);
   let base = `${url.protocol}//${url.hostname}`;
 
-  // 只在本地域名（有端口号）且有配置端口时添加端口
-  if (isLocalDomain(currentUrl) && port) {
-    base = `${base}:${port}`;
+  // 端口处理逻辑：
+  // 只有 dev. 开头的域名才处理端口
+  if (isDevDomain(currentUrl)) {
+    if (port) {
+      // dev.域名选择了具体端口，使用选择的端口
+      base = `${base}:${port}`;
+    } else if (url.port) {
+      // dev.域名没选择端口（Default Port），保留原端口
+      base = `${base}:${url.port}`;
+    }
   }
+  // 其他域名（生产域名等）不添加端口，即使选择了端口也忽略
 
   return `${base}${uri}`;
 };
@@ -121,12 +141,18 @@ const buildTargetURL = (
     const url = new URL(currentUrl);
     baseURL = `${url.protocol}//${url.hostname}`;
 
-    // 处理端口
-    if (isLocalDomain(currentUrl) && port) {
-      baseURL = `${baseURL}:${port}`;
-    } else if (url.port) {
-      baseURL = `${baseURL}:${url.port}`;
+    // 端口处理逻辑：
+    // 只有 dev. 开头的域名才处理端口
+    if (isDevDomain(currentUrl)) {
+      if (port) {
+        // dev.域名选择了具体端口，使用选择的端口
+        baseURL = `${baseURL}:${port}`;
+      } else if (url.port) {
+        // dev.域名没选择端口（Default Port），保留原端口
+        baseURL = `${baseURL}:${url.port}`;
+      }
     }
+    // 其他域名（生产域名等）不添加端口，即使选择了端口也忽略
 
     // 保留原有路径
     baseURL = `${baseURL}${url.pathname}`;
