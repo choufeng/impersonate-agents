@@ -254,7 +254,7 @@ const executeImpersonateInPage = async (
 
   await chrome.scripting.executeScript({
     target: { tabId: tab.id! },
-    world: chrome.scripting.ExecutionWorld.MAIN,
+    world: "MAIN" as chrome.scripting.ExecutionWorld,
     func: (url: string, user: string) => {
       console.log("🟢 [PAGE] 进入页面上下文");
       console.log("🟢 [PAGE] 目标URL:", url);
@@ -398,6 +398,52 @@ const executeRedirectFlow = async (options: {
   console.log("🚀 [REDIRECT] ========== 跳转流程结束 ==========");
 };
 
+/**
+ * 通过 JS 注入方式设置 OPTY features
+ * 
+ * @param features - OPTY feature 数组（不带 opty_ 前缀）
+ */
+const injectOptyFeatures = async (features: string[]): Promise<void> => {
+  console.log("💉 [OPTY-INJECT] ========== 开始注入 OPTY features ==========");
+  console.log("💉 [OPTY-INJECT] Features:", features);
+
+  const tab = await getCurrentTab();
+  
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id! },
+    world: "MAIN" as chrome.scripting.ExecutionWorld,
+    func: (featuresToSet) => {
+      console.log("💉 [PAGE] 页面上下文中注入 OPTY features:", featuresToSet);
+      
+      // 确保 window.uc.opty 存在
+      const w = window as any;
+      if (!w.uc) {
+        w.uc = {};
+      }
+      if (!w.uc.opty) {
+        w.uc.opty = {};
+      }
+      
+      // 设置 features 数组
+      (window as any).uc.opty.features = featuresToSet;
+      
+      console.log("💉 [PAGE] window.uc.opty.features 已设置为:", (window as any).uc.opty.features);
+      
+      // 触发自定义事件，通知页面 OPTY 配置已更新
+      window.dispatchEvent(
+        new CustomEvent("opty-features-updated", {
+          detail: { features: featuresToSet },
+        }),
+      );
+      
+      console.log("💉 [PAGE] 已触发 opty-features-updated 事件");
+    },
+    args: [features],
+  });
+
+  console.log("💉 [OPTY-INJECT] ========== OPTY features 注入完成 ==========");
+};
+
 // ============================================================================
 // 导出所有函数
 // ============================================================================
@@ -413,4 +459,5 @@ export {
   redirectTab,
   sleep,
   executeRedirectFlow,
+  injectOptyFeatures,
 };

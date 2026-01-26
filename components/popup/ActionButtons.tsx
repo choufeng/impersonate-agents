@@ -9,7 +9,12 @@ import { useI18n } from "../../lib/I18nProvider";
 import Tooltip from "../Tooltip";
 
 type PopupView = "impersonate" | "address";
-type RedirectMode = "full" | "paramsOnly" | "optyOnly" | "paramsAndOpty";
+type RedirectMode =
+  | "full"
+  | "paramsOnly"
+  | "optyOnly"
+  | "paramsAndOpty"
+  | "optyInject";
 
 interface ActionButtonsProps {
   selectedCombination: boolean;
@@ -114,6 +119,14 @@ export default function ActionButtons({
                     onClick={() => onRedirect("paramsAndOpty")}
                   >
                     {t("popup.redirectParamsAndOpty")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    data-tn="redirect-opty-inject"
+                    onClick={() => onRedirect("optyInject")}
+                  >
+                    {t("popup.redirectOptyInject")}
                   </a>
                 </li>
               </ul>

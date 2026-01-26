@@ -27,6 +27,9 @@ import {
 import {
   buildParametersWithOverrides,
   executeRedirectFlow,
+  injectOptyFeatures,
+  buildTargetURL,
+  redirectTab,
 } from "./lib/url-builder";
 import type {
   Agent,
@@ -45,7 +48,7 @@ import ActionButtons from "./components/popup/ActionButtons";
 import AddressView from "./components/popup/AddressView";
 
 type PopupView = "impersonate" | "address";
-type RedirectMode = "full" | "paramsOnly" | "optyOnly" | "paramsAndOpty";
+type RedirectMode = "full" | "paramsOnly" | "optyOnly" | "paramsAndOpty" | "optyInject";
 
 function PopupContent() {
   const { t } = useI18n();
@@ -410,6 +413,9 @@ function PopupContent() {
         filteredTailParams = [];
       } else if (mode === "paramsAndOpty") {
         // 参数+opty（都保留，这是默认行为）
+      } else if (mode === "optyInject") {
+        // OPTY注入模式：不在URL中带opty参数，后续通过JS注入
+        // 保留tail参数用于URL，opty参数稍后注入
       }
 
       // 应用临时修改
@@ -468,24 +474,80 @@ function PopupContent() {
       if (
         mode === "paramsOnly" ||
         mode === "optyOnly" ||
-        mode === "paramsAndOpty"
+        mode === "paramsAndOpty" ||
+        mode === "optyInject"
       ) {
         // 非full模式，不使用URI，基于当前URL跳转
         // 通过传递null来表示不改变URI部分
         finalUri = null as any; // 我们需要修改executeRedirectFlow来支持这个
       }
 
-      // 执行完整的跳转流程（使用临时状态）
-      await executeRedirectFlow({
-        currentUrl,
-        combination: tempCombination,
-        agent: finalAgent,
-        port: tempPort,
-        uri: finalUri,
-        params: tempParams,
-        needImpersonate,
-        skipUri: mode !== "full", // 新增标志，表示跳过URI变更
-      });
+      // OPTY注入模式的特殊处理
+      if (mode === "optyInject") {
+        console.log("📱 [POPUP] 🧪 使用OPTY注入模式");
+        
+        // 提取OPTY features（去掉opty_前缀）
+        const optyFeatures = filteredOptyParams
+          .map((param) => {
+            const enabled = tempOverrides.has(`opty_${param.key}`)
+              ? (tempOverrides.get(`opty_${param.key}`) as boolean)
+              : param.value;
+            return enabled ? param.key : null;
+          })
+          .filter((key): key is string => key !== null);
+        
+        console.log("📱 [POPUP] 🧪 将要注入的OPTY features:", optyFeatures);
+        
+        // 构建不含OPTY参数的URL（只包含tail参数）
+        const tempParamsWithoutOpty: TempOverride[] = filteredTailParams.map((param) => {
+          const key = param.key;
+          const value = tempValueOverrides.has(key)
+            ? (tempValueOverrides.get(key) as string)
+            : param.value;
+          return {
+            key,
+            value,
+            isOpty: false,
+            enabled: true,
+            isModified: false,
+          };
+        });
+        
+        // 构建目标URL（不包含OPTY参数）
+        const targetUrl = buildTargetURL(
+          currentUrl,
+          null, // 不改变URI
+          tempPort?.port ?? null,
+          tempParamsWithoutOpty,
+          true, // skipUri
+        );
+        
+        console.log("📱 [POPUP] 🧪 目标URL（无OPTY）:", targetUrl);
+        
+        // 执行跳转
+        await redirectTab(targetUrl);
+        
+        // 等待页面开始加载
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // 注入OPTY features
+        if (optyFeatures.length > 0) {
+          await injectOptyFeatures(optyFeatures);
+          console.log("📱 [POPUP] 🧪 OPTY features注入完成");
+        }
+      } else {
+        // 执行完整的跳转流程（使用临时状态）
+        await executeRedirectFlow({
+          currentUrl,
+          combination: tempCombination,
+          agent: finalAgent,
+          port: tempPort,
+          uri: finalUri,
+          params: tempParams,
+          needImpersonate,
+          skipUri: mode !== "full", // 新增标志，表示跳过URI变更
+        });
+      }
 
       // 记录初始化标记
       await setCurrentCombinationInitialized(selectedCombination.id);
