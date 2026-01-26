@@ -424,7 +424,7 @@ export const en: Translations = {
     addressDisplayPlaceholder: "Select an address to view details",
     loading: "Loading...",
     noAddress: "No address available",
-    reportWrongAddress: "Report: This is a wrong address",
+    reportWrongAddress: "Mark as a Wrong Address",
   },
 };
 
@@ -637,6 +637,6 @@ export const zh: Translations = {
     addressDisplayPlaceholder: "选择地址以查看详情",
     loading: "加载中...",
     noAddress: "暂无地址",
-    reportWrongAddress: "报告：这是一个错误的地址",
+    reportWrongAddress: "标记为错误地址",
   },
 };
