@@ -28,8 +28,6 @@ import {
   buildParametersWithOverrides,
   executeRedirectFlow,
   injectOptyFeatures,
-  buildTargetURL,
-  redirectTab,
 } from "./lib/url-builder";
 import type {
   Agent,
@@ -484,7 +482,7 @@ function PopupContent() {
 
       // OPTY注入模式的特殊处理
       if (mode === "optyInject") {
-        console.log("📱 [POPUP] 🧪 使用OPTY注入模式");
+        console.log("📱 [POPUP] 🧪 使用OPTY注入模式（仅注入，不跳转）");
         
         // 提取OPTY features（去掉opty_前缀）
         const optyFeatures = filteredOptyParams
@@ -498,42 +496,12 @@ function PopupContent() {
         
         console.log("📱 [POPUP] 🧪 将要注入的OPTY features:", optyFeatures);
         
-        // 构建不含OPTY参数的URL（只包含tail参数）
-        const tempParamsWithoutOpty: TempOverride[] = filteredTailParams.map((param) => {
-          const key = param.key;
-          const value = tempValueOverrides.has(key)
-            ? (tempValueOverrides.get(key) as string)
-            : param.value;
-          return {
-            key,
-            value,
-            isOpty: false,
-            enabled: true,
-            isModified: false,
-          };
-        });
-        
-        // 构建目标URL（不包含OPTY参数）
-        const targetUrl = buildTargetURL(
-          currentUrl,
-          null, // 不改变URI
-          tempPort?.port ?? null,
-          tempParamsWithoutOpty,
-          true, // skipUri
-        );
-        
-        console.log("📱 [POPUP] 🧪 目标URL（无OPTY）:", targetUrl);
-        
-        // 执行跳转
-        await redirectTab(targetUrl);
-        
-        // 等待页面开始加载
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // 注入OPTY features
+        // 直接注入OPTY features到当前页面，不进行跳转
         if (optyFeatures.length > 0) {
           await injectOptyFeatures(optyFeatures);
           console.log("📱 [POPUP] 🧪 OPTY features注入完成");
+        } else {
+          console.log("📱 [POPUP] 🧪 没有启用的OPTY features需要注入");
         }
       } else {
         // 执行完整的跳转流程（使用临时状态）
