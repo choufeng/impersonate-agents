@@ -210,6 +210,7 @@ export interface Translations {
     loading: string;
     noAddress: string;
     reportWrongAddress: string;
+    cachedAddressHint: string;
   };
 }
 
@@ -425,6 +426,7 @@ export const en: Translations = {
     loading: "Loading...",
     noAddress: "No address available",
     reportWrongAddress: "Mark as a Wrong Address",
+    cachedAddressHint: "Last generated address",
   },
 };
 
@@ -638,5 +640,6 @@ export const zh: Translations = {
     loading: "加载中...",
     noAddress: "暂无地址",
     reportWrongAddress: "标记为错误地址",
+    cachedAddressHint: "上次生成的地址",
   },
 };

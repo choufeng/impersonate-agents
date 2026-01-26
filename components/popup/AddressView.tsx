@@ -24,9 +24,12 @@ export default function AddressView() {
   const [showToast, setShowToast] = useState(false);
 
   const partnerNames = useQuery(api.partners.getAllPartnerNames);
+
+  const shouldSkipAddressQuery =
+    !selectedPartner || (lastAddress !== null && refreshKey === 0);
   const randomAddress = useQuery(
     api.partners.getRandomAddress,
-    selectedPartner ? { name: selectedPartner, refreshKey } : "skip",
+    shouldSkipAddressQuery ? "skip" : { name: selectedPartner, refreshKey },
   );
   const removeAddress = useMutation(api.partners.removeAddressFromPartner);
 
@@ -81,6 +84,7 @@ export default function AddressView() {
   }, [randomAddress]);
 
   const displayAddress = randomAddress ?? lastAddress;
+  const isShowingCachedAddress = lastAddress !== null && refreshKey === 0;
 
   const handleReportWrongAddress = async () => {
     if (!selectedPartner || !displayAddress) return;
@@ -135,8 +139,18 @@ export default function AddressView() {
           >
             {selectedPartner ? (
               displayAddress ? (
-                <div className="text-left text-base-content text-lg font-medium">
-                  {formatAddressForDisplay(displayAddress)}
+                <div className="text-left">
+                  <div className="text-base-content text-lg font-medium">
+                    {formatAddressForDisplay(displayAddress)}
+                  </div>
+                  {isShowingCachedAddress && (
+                    <div
+                      data-tn="cached-address-hint"
+                      className="text-xs text-base-content/50 mt-2 text-center"
+                    >
+                      {t("popup.cachedAddressHint")}
+                    </div>
+                  )}
                 </div>
               ) : randomAddress === undefined ? (
                 <div className="text-center text-base-content/50">
@@ -167,9 +181,11 @@ export default function AddressView() {
                   data-tn="refetch-address-btn"
                   className="btn btn-sm btn-primary flex-1"
                   onClick={handleRefetch}
-                  disabled={randomAddress === undefined}
+                  disabled={
+                    !shouldSkipAddressQuery && randomAddress === undefined
+                  }
                 >
-                  {randomAddress === undefined
+                  {!shouldSkipAddressQuery && randomAddress === undefined
                     ? t("popup.fetching")
                     : t("popup.fetchAddress")}
                 </button>
