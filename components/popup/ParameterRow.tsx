@@ -25,7 +25,7 @@ export default function ParameterRow({
         <>
           <div className="flex-1 min-w-0">
             <span className="text-sm block truncate cursor-default">
-              {param.key.replace(/^OPTY_/, "")}
+              {param.key.replace(/^opty_/, "")}
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">

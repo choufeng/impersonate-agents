@@ -196,6 +196,10 @@ export interface Translations {
     openSettings: string;
     redirecting: string;
     redirect: string;
+    redirectFull: string;
+    redirectParamsOnly: string;
+    redirectOptyOnly: string;
+    redirectParamsAndOpty: string;
     addressViewPlaceholder: string;
     switchToAddressView: string;
     switchToImpersonateView: string;
@@ -402,11 +406,15 @@ export const en: Translations = {
     selectPort: "Select Port",
     selectUri: "Select URI",
     tailParameters: "Parameters",
-    optyParameters: "OPTY Parameters",
+    optyParameters: "opty Parameters",
     resetAll: "Reset All",
     openSettings: "Open Settings",
     redirecting: "Redirecting...",
     redirect: "Redirect",
+    redirectFull: "Full Redirect (URI+Params+opty)",
+    redirectParamsOnly: "Params Only (Current URL)",
+    redirectOptyOnly: "opty Only",
+    redirectParamsAndOpty: "Params + opty",
     addressViewPlaceholder: "Address view content coming soon",
     switchToAddressView: "Switch to address view",
     switchToImpersonateView: "Switch to impersonate view",
@@ -611,11 +619,15 @@ export const zh: Translations = {
     selectPort: "请选择 Port",
     selectUri: "请选择 URI",
     tailParameters: "参数",
-    optyParameters: "OPTY 参数",
+    optyParameters: "opty 参数",
     resetAll: "重置全部",
     openSettings: "打开设置",
     redirecting: "跳转中...",
     redirect: "跳转",
+    redirectFull: "完整跳转（含URI+参数+opty）",
+    redirectParamsOnly: "仅带参数跳转（当前URL）",
+    redirectOptyOnly: "仅带opty跳转",
+    redirectParamsAndOpty: "参数+opty跳转",
     addressViewPlaceholder: "地址视图内容即将推出",
     switchToAddressView: "切换到地址视图",
     switchToImpersonateView: "切换到模拟视图",

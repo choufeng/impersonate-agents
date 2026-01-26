@@ -101,19 +101,39 @@ const buildQueryString = (params: TempOverride[]): string => {
  * 构建目标 URL
  *
  * @param currentUrl - 当前页面的 URL
- * @param uri - URI 路径（如 /app/lab）
+ * @param uri - URI 路径（如 /app/lab），如果为null则使用当前URL的路径
  * @param port - 端口号（可选）
  * @param params - 参数列表（包含临时修改）
+ * @param skipUri - 是否跳过URI变更，直接使用当前URL
  * @returns 完整的目标 URL
  */
 const buildTargetURL = (
   currentUrl: string,
-  uri: string,
+  uri: string | null,
   port: number | null,
   params: TempOverride[],
+  skipUri: boolean = false,
 ): string => {
-  // 构建基础 URL
-  const baseURL = buildBaseURL(currentUrl, uri, port);
+  let baseURL: string;
+
+  if (skipUri || uri === null) {
+    // 使用当前URL的协议、主机名、端口和路径
+    const url = new URL(currentUrl);
+    baseURL = `${url.protocol}//${url.hostname}`;
+
+    // 处理端口
+    if (isLocalDomain(currentUrl) && port) {
+      baseURL = `${baseURL}:${port}`;
+    } else if (url.port) {
+      baseURL = `${baseURL}:${url.port}`;
+    }
+
+    // 保留原有路径
+    baseURL = `${baseURL}${url.pathname}`;
+  } else {
+    // 构建基础 URL（使用指定的URI）
+    baseURL = buildBaseURL(currentUrl, uri, port);
+  }
 
   // 构建查询字符串
   const queryString = buildQueryString(params);
@@ -158,9 +178,9 @@ const buildParametersWithOverrides = (
     };
   });
 
-  // 获取 OPTY 参数（布尔值，构建URL时自动添加OPTY_前缀）
+  // 获取 opty 参数（布尔值，构建URL时自动添加opty_前缀）
   const optyOverrides = optyParams.map((p) => {
-    const keyWithPrefix = `OPTY_${p.key}`;
+    const keyWithPrefix = `opty_${p.key}`;
     const isModified = tempOverrides.has(keyWithPrefix);
     const enabled = isModified
       ? (tempOverrides.get(keyWithPrefix) as boolean)
@@ -316,40 +336,52 @@ const executeImpersonateInPage = async (
  * 执行完整的跳转流程
  *
  * @param currentUrl - 当前页面的 URL
- * @param combination - 组合配置
+ * @param combination - Combination 配置
  * @param agent - Agent 配置
  * @param port - Port 配置（可选）
- * @param uri - URI 配置
+ * @param uri - URI 配置（可选，如果skipUri为true则忽略）
  * @param params - 参数列表（包含临时修改）
  * @param needImpersonate - 是否需要执行 impersonate
+ * @param skipUri - 是否跳过URI变更，基于当前URL跳转
  */
 const executeRedirectFlow = async (options: {
   currentUrl: string;
   combination: Combination;
   agent: Agent;
   port?: Port | null;
-  uri: UriEntry;
+  uri: UriEntry | null;
   params: TempOverride[];
   needImpersonate: boolean;
+  skipUri?: boolean;
 }): Promise<void> => {
   console.log("🚀 [REDIRECT] ========== 开始执行跳转流程 ==========");
-  const { currentUrl, combination, agent, port, uri, params, needImpersonate } =
-    options;
+  const {
+    currentUrl,
+    combination,
+    agent,
+    port,
+    uri,
+    params,
+    needImpersonate,
+    skipUri = false,
+  } = options;
 
   console.log("🚀 [REDIRECT] 当前URL:", currentUrl);
   console.log("🚀 [REDIRECT] 组合ID:", combination.id);
   console.log("🚀 [REDIRECT] Agent:", agent);
   console.log("🚀 [REDIRECT] Port:", port);
   console.log("🚀 [REDIRECT] URI:", uri);
+  console.log("🚀 [REDIRECT] 跳过URI变更:", skipUri);
   console.log("🚀 [REDIRECT] 参数数量:", params.length);
   console.log("🚀 [REDIRECT] 需要Impersonate:", needImpersonate);
 
   // 构建目标 URL（使用正确的参数）
   const targetURL = buildTargetURL(
     currentUrl,
-    uri.uri,
+    skipUri ? null : (uri?.uri ?? null),
     port?.port ?? null,
     params,
+    skipUri,
   );
   console.log("🚀 [REDIRECT] 构建的目标URL:", targetURL);
 

@@ -45,6 +45,7 @@ import ActionButtons from "./components/popup/ActionButtons";
 import AddressView from "./components/popup/AddressView";
 
 type PopupView = "impersonate" | "address";
+type RedirectMode = "full" | "paramsOnly" | "optyOnly" | "paramsAndOpty";
 
 function PopupContent() {
   const { t } = useI18n();
@@ -351,8 +352,9 @@ function PopupContent() {
   /**
    * 跳转按钮处理（执行完整的跳转流程）
    */
-  const handleRedirect = async () => {
+  const handleRedirect = async (mode: RedirectMode = "full") => {
     console.log("📱 [POPUP] ========== 用户点击跳转按钮 ==========");
+    console.log("📱 [POPUP] 跳转模式:", mode);
     if (!selectedCombination) {
       console.warn("📱 [POPUP] ⚠️ 没有选择组合");
       return;
@@ -396,9 +398,23 @@ function PopupContent() {
         selectedCombination.optyParameterIds.includes(param.id),
       );
 
+      // 根据模式过滤参数
+      let filteredTailParams = baseTailParams;
+      let filteredOptyParams = baseOptyParams;
+
+      if (mode === "paramsOnly") {
+        // 仅带参数
+        filteredOptyParams = [];
+      } else if (mode === "optyOnly") {
+        // 仅带opty
+        filteredTailParams = [];
+      } else if (mode === "paramsAndOpty") {
+        // 参数+opty（都保留，这是默认行为）
+      }
+
       // 应用临时修改
       const tempParams: TempOverride[] = [
-        ...baseTailParams.map((param) => {
+        ...filteredTailParams.map((param) => {
           const key = param.key;
           const value = tempValueOverrides.has(key)
             ? (tempValueOverrides.get(key) as string)
@@ -411,8 +427,8 @@ function PopupContent() {
             isModified: false,
           };
         }),
-        ...baseOptyParams.map((param) => {
-          const keyWithPrefix = `OPTY_${param.key}`;
+        ...filteredOptyParams.map((param) => {
+          const keyWithPrefix = `opty_${param.key}`;
           const enabled = tempOverrides.has(keyWithPrefix)
             ? (tempOverrides.get(keyWithPrefix) as boolean)
             : param.value;
@@ -447,15 +463,28 @@ function PopupContent() {
       console.log("📱 [POPUP] 即将使用的Agent:", finalAgent);
       console.log("📱 [POPUP] ✅ 需要Impersonate:", needImpersonate);
 
+      // 根据模式决定是否使用URI
+      let finalUri = tempUri || uri!;
+      if (
+        mode === "paramsOnly" ||
+        mode === "optyOnly" ||
+        mode === "paramsAndOpty"
+      ) {
+        // 非full模式，不使用URI，基于当前URL跳转
+        // 通过传递null来表示不改变URI部分
+        finalUri = null as any; // 我们需要修改executeRedirectFlow来支持这个
+      }
+
       // 执行完整的跳转流程（使用临时状态）
       await executeRedirectFlow({
         currentUrl,
         combination: tempCombination,
         agent: finalAgent,
         port: tempPort,
-        uri: tempUri || uri!,
+        uri: finalUri,
         params: tempParams,
         needImpersonate,
+        skipUri: mode !== "full", // 新增标志，表示跳过URI变更
       });
 
       // 记录初始化标记

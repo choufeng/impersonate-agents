@@ -9,11 +9,12 @@ import { useI18n } from "../../lib/I18nProvider";
 import Tooltip from "../Tooltip";
 
 type PopupView = "impersonate" | "address";
+type RedirectMode = "full" | "paramsOnly" | "optyOnly" | "paramsAndOpty";
 
 interface ActionButtonsProps {
   selectedCombination: boolean;
   isLoading: boolean;
-  onRedirect: () => void;
+  onRedirect: (mode: RedirectMode) => void;
   onOpenOptions: () => void;
   currentView: PopupView;
   onToggleView: () => void;
@@ -65,21 +66,62 @@ export default function ActionButtons({
           </button>
         </Tooltip>
         {!isAddressView && (
-          <button
-            data-tn="redirect-button"
-            className="btn btn-success flex-1"
-            disabled={!selectedCombination || isLoading}
-            onClick={onRedirect}
-          >
-            {isLoading ? (
-              t("popup.redirecting")
-            ) : (
-              <>
-                <RocketIcon size={16} className="mr-2" />
-                {t("popup.redirect")}
-              </>
+          <div className="flex-1 flex gap-1">
+            <button
+              data-tn="redirect-button"
+              className="btn btn-success flex-1"
+              disabled={!selectedCombination || isLoading}
+              onClick={() => onRedirect("full")}
+            >
+              {isLoading ? (
+                t("popup.redirecting")
+              ) : (
+                <>
+                  <RocketIcon size={16} className="mr-2" />
+                  {t("popup.redirect")}
+                </>
+              )}
+            </button>
+            {!isLoading && selectedCombination && (
+              <details className="dropdown dropdown-top dropdown-end">
+                <summary className="btn btn-success px-2">▾</summary>
+                <ul className="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow mb-1">
+                  <li>
+                    <a
+                      data-tn="redirect-full"
+                      onClick={() => onRedirect("full")}
+                    >
+                      {t("popup.redirectFull")}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      data-tn="redirect-params-only"
+                      onClick={() => onRedirect("paramsOnly")}
+                    >
+                      {t("popup.redirectParamsOnly")}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      data-tn="redirect-opty-only"
+                      onClick={() => onRedirect("optyOnly")}
+                    >
+                      {t("popup.redirectOptyOnly")}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      data-tn="redirect-params-and-opty"
+                      onClick={() => onRedirect("paramsAndOpty")}
+                    >
+                      {t("popup.redirectParamsAndOpty")}
+                    </a>
+                  </li>
+                </ul>
+              </details>
             )}
-          </button>
+          </div>
         )}
       </div>
     </>
