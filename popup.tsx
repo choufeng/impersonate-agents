@@ -531,7 +531,7 @@ function PopupContent() {
             />
           </div>
 
-          {selectedCombination && (
+          {selectedCombination ? (
             <div className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden">
               <div className="px-4">
                 <BasicInfoCard
@@ -573,6 +573,8 @@ function PopupContent() {
                 />
               </div>
             </div>
+          ) : (
+            <div className="flex-1" />
           )}
         </>
       ) : (
