@@ -453,19 +453,6 @@ const injectOptyFeatures = async (
       w.uc.opty.features = currentFeatures;
       
       console.log("💉 [PAGE] 更新后的 features:", w.uc.opty.features);
-      
-      // 触发自定义事件，通知页面 OPTY 配置已更新
-      window.dispatchEvent(
-        new CustomEvent("opty-features-updated", {
-          detail: { 
-            features: currentFeatures,
-            added: toAdd,
-            removed: toRemove,
-          },
-        }),
-      );
-      
-      console.log("💉 [PAGE] 已触发 opty-features-updated 事件");
     },
     args: [featuresToAdd, featuresToRemove],
   });
