@@ -146,14 +146,16 @@ export default function AddressView() {
             <div className="card-actions justify-center p-3 pt-0 gap-2">
               <button
                 data-tn="copy-address-btn"
-                className="btn btn-sm btn-outline flex-1"
+                className="btn btn-sm btn-outline"
+                style={{ flex: "0.8" }}
                 onClick={handleCopy}
               >
                 {copied ? t("common.copied") : t("common.copy")}
               </button>
               <button
                 data-tn="refetch-address-btn"
-                className="btn btn-sm btn-primary flex-1"
+                className="btn btn-sm btn-primary"
+                style={{ flex: "1.2" }}
                 onClick={handleRefetch}
                 disabled={randomAddress === undefined}
               >
@@ -163,7 +165,8 @@ export default function AddressView() {
               </button>
               <button
                 data-tn="report-wrong-address-btn"
-                className="btn btn-sm btn-error btn-outline flex-1"
+                className="btn btn-sm btn-error btn-outline"
+                style={{ flex: "1.5" }}
                 onClick={handleReportWrongAddress}
               >
                 {t("popup.reportWrongAddress")}
