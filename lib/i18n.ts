@@ -186,6 +186,7 @@ export interface Translations {
 
   popup: {
     selectConfig: string;
+    noMatchingConfig: string;
     basicInfo: string;
     selectAgent: string;
     selectPort: string;
@@ -402,6 +403,7 @@ export const en: Translations = {
 
   popup: {
     selectConfig: "Select configuration...",
+    noMatchingConfig: "No matching configuration",
     basicInfo: "Basic Info",
     selectAgent: "Select Agent",
     selectPort: "Select Port",
@@ -616,6 +618,7 @@ export const zh: Translations = {
 
   popup: {
     selectConfig: "选择配置...",
+    noMatchingConfig: "没有匹配的配置",
     basicInfo: "基础信息",
     selectAgent: "请选择 Agent",
     selectPort: "请选择 Port",
