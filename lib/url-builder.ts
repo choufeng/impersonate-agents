@@ -431,24 +431,25 @@ const injectOptyFeatures = async (
         w.uc.opty = {};
       }
       
-      // 获取现有的 features 数组（如果不存在则初始化为空数组）
-      let currentFeatures: string[] = Array.isArray(w.uc.opty.features) 
-        ? [...w.uc.opty.features] 
-        : [];
+      // 获取现有的 features 对象（如果不存在或不是对象则初始化为空对象）
+      let currentFeatures: Record<string, boolean> = 
+        typeof w.uc.opty.features === 'object' && !Array.isArray(w.uc.opty.features)
+          ? { ...w.uc.opty.features } 
+          : {};
       
       console.log("💉 [PAGE] 现有 features:", currentFeatures);
       
-      // 移除要禁用的 features
-      currentFeatures = currentFeatures.filter(f => !toRemove.includes(f));
-      
-      // 添加新的 features（去重）
-      toAdd.forEach(feature => {
-        if (!currentFeatures.includes(feature)) {
-          currentFeatures.push(feature);
-        }
+      // 移除要禁用的 features（设置为 false 或删除）
+      toRemove.forEach(feature => {
+        delete currentFeatures[feature];
       });
       
-      // 更新 features 数组
+      // 添加/启用新的 features
+      toAdd.forEach(feature => {
+        currentFeatures[feature] = true;
+      });
+      
+      // 更新 features 对象
       w.uc.opty.features = currentFeatures;
       
       console.log("💉 [PAGE] 更新后的 features:", w.uc.opty.features);
