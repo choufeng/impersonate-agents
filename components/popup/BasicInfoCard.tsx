@@ -125,10 +125,13 @@ export default function BasicInfoCard({
               <span className="label-text text-xs">Port</span>
             </label>
             <SearchableSelect
-              options={ports.map((p) => ({
-                id: p.id,
-                label: `${p.port}${p.description ? ` - ${p.description}` : ""}`,
-              }))}
+              options={[
+                { id: "", label: t("popup.selectPort") },
+                ...ports.map((p) => ({
+                  id: p.id,
+                  label: `${p.port}${p.description ? ` - ${p.description}` : ""}`,
+                })),
+              ]}
               value={selectedPortId}
               onChange={handlePortChange}
               placeholder={t("popup.selectPort")}
