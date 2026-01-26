@@ -35,8 +35,8 @@ interface I18nProviderProps {
 }
 
 export function I18nProvider({ children }: I18nProviderProps) {
-  const [language, setLanguageState] = useStorage<Language>("language", "zh");
-  const [translations, setTranslations] = useState<Translations>(zh);
+  const [language, setLanguageState] = useStorage<Language>("language", "en");
+  const [translations, setTranslations] = useState<Translations>(en);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -72,10 +72,10 @@ export function I18nProvider({ children }: I18nProviderProps) {
     return (
       <I18nContext.Provider
         value={{
-          language: "zh",
+          language: "en",
           setLanguage: () => {},
           t: (k) => k,
-          translations: zh,
+          translations: en,
         }}
       >
         {children}
