@@ -439,12 +439,12 @@ const injectOptyFeatures = async (
       
       console.log("💉 [PAGE] 现有 features:", currentFeatures);
       
-      // 移除要禁用的 features（设置为 false 或删除）
+      // 禁用 features（设置为 false）
       toRemove.forEach(feature => {
-        delete currentFeatures[feature];
+        currentFeatures[feature] = false;
       });
       
-      // 添加/启用新的 features
+      // 启用 features（设置为 true）
       toAdd.forEach(feature => {
         currentFeatures[feature] = true;
       });
