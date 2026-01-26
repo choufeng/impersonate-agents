@@ -15,6 +15,10 @@ export default function AddressView() {
     "addressView.lastAddress",
     null,
   );
+  const [cachedPartnerNames, setCachedPartnerNames] = useStorage<string[]>(
+    "addressView.cachedPartnerNames",
+    [],
+  );
   const [refreshKey, setRefreshKey] = useState(0);
   const [copied, setCopied] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -25,6 +29,14 @@ export default function AddressView() {
     selectedPartner ? { name: selectedPartner, refreshKey } : "skip",
   );
   const removeAddress = useMutation(api.partners.removeAddressFromPartner);
+
+  useEffect(() => {
+    if (partnerNames && partnerNames.length > 0) {
+      setCachedPartnerNames(partnerNames);
+    }
+  }, [partnerNames]);
+
+  const displayPartnerNames = partnerNames ?? cachedPartnerNames;
 
   const handleRefetch = () => {
     setRefreshKey((prev) => prev + 1);
@@ -104,10 +116,10 @@ export default function AddressView() {
             className="select select-bordered w-full h-10"
             value={selectedPartner}
             onChange={(e) => setSelectedPartner(e.target.value)}
-            disabled={partnerNames === undefined}
+            disabled={displayPartnerNames.length === 0}
           >
             <option value="">{t("popup.selectAddress")}</option>
-            {partnerNames?.map((name: string) => (
+            {displayPartnerNames.map((name: string) => (
               <option key={name} value={name}>
                 {name}
               </option>
@@ -121,22 +133,18 @@ export default function AddressView() {
             data-tn="address-display-card"
             className="card-body p-3 flex-1 flex items-center justify-center"
           >
-            {partnerNames === undefined ? (
-              <div className="text-center text-base-content/50">
-                {t("popup.loading")}
-              </div>
-            ) : selectedPartner ? (
-              randomAddress === undefined && !lastAddress ? (
+            {selectedPartner ? (
+              displayAddress ? (
+                <div className="text-left text-base-content text-lg font-medium">
+                  {formatAddressForDisplay(displayAddress)}
+                </div>
+              ) : randomAddress === undefined ? (
                 <div className="text-center text-base-content/50">
                   {t("popup.loading")}
                 </div>
-              ) : !displayAddress ? (
+              ) : (
                 <div className="text-center text-base-content/50">
                   {t("popup.noAddress")}
-                </div>
-              ) : (
-                <div className="text-left text-base-content text-lg font-medium">
-                  {formatAddressForDisplay(displayAddress)}
                 </div>
               )
             ) : (
