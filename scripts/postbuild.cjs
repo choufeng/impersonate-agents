@@ -21,7 +21,7 @@ const config = {
   },
   production: {
     name: "impersonate-agents",
-    displayName: "IA",
+    displayName: "IA - Tools for Development",
     version: packageJson.version,
     buildDir: "build/chrome-mv3-prod",
   },
