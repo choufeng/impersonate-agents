@@ -86,7 +86,7 @@ export default function ActionButtons({
                 <RocketIcon size={16} className="mr-2" />
                 {t("popup.redirect")}
               </summary>
-              <ul className="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow mb-1">
+              <ul className="dropdown-content menu bg-[#fffef7] rounded-box z-[1] w-64 p-2 shadow mb-1">
                 <li>
                   <a data-tn="redirect-full" onClick={() => onRedirect("full")}>
                     {t("popup.redirectFull")}

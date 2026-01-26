@@ -186,6 +186,7 @@ export interface Translations {
 
   popup: {
     selectConfig: string;
+    noMatchingConfig: string;
     basicInfo: string;
     selectAgent: string;
     selectPort: string;
@@ -316,7 +317,7 @@ export const en: Translations = {
     selectAgent: "Agent (Username)",
     selectAgentPlaceholder: "Please select Agent (optional)",
     selectPort: "Port",
-    selectPortPlaceholder: "Please select Port (optional)",
+    selectPortPlaceholder: "Default Port",
     selectUri: "URI",
     selectUriPlaceholder: "Please select URI (optional)",
     tailParams: "Tail Parameters",
@@ -402,9 +403,10 @@ export const en: Translations = {
 
   popup: {
     selectConfig: "Select configuration...",
+    noMatchingConfig: "No matching configuration",
     basicInfo: "Basic Info",
     selectAgent: "Select Agent",
-    selectPort: "Select Port",
+    selectPort: "Default Port",
     selectUri: "Select URI",
     tailParameters: "Parameters",
     optyParameters: "opty Parameters",
@@ -531,7 +533,7 @@ export const zh: Translations = {
     selectAgent: "Agent（用户名）",
     selectAgentPlaceholder: "请选择 Agent（可选）",
     selectPort: "端口",
-    selectPortPlaceholder: "请选择端口（可选）",
+    selectPortPlaceholder: "默认端口",
     selectUri: "URI",
     selectUriPlaceholder: "请选择 URI（可选）",
     tailParams: "尾部参数",
@@ -616,9 +618,10 @@ export const zh: Translations = {
 
   popup: {
     selectConfig: "选择配置...",
+    noMatchingConfig: "没有匹配的配置",
     basicInfo: "基础信息",
     selectAgent: "请选择 Agent",
-    selectPort: "请选择 Port",
+    selectPort: "默认端口",
     selectUri: "请选择 URI",
     tailParameters: "参数",
     optyParameters: "opty 参数",

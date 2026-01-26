@@ -25,7 +25,7 @@ export default function OptyParametersSection({
         {
           key: "key",
           label: t("optyParameters.key"),
-          render: (p) => `${t("optyParameters.optyPrefix")}${p.key}`,
+          render: (p) => p.key,
           className: "font-mono",
         },
         {

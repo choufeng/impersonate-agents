@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { Agent, Port, UriEntry, Combination } from "../../lib/types";
 import { getAgents, getPorts, getUris } from "../../lib/storage";
 import { useI18n } from "../../lib/I18nProvider";
+import SearchableSelect from "./SearchableSelect";
 
 interface BasicInfoCardProps {
   combination: Combination | null;
@@ -99,7 +100,7 @@ export default function BasicInfoCard({
   };
 
   return (
-    <div className="card bg-base-100 shadow-sm rounded-lg overflow-hidden">
+    <div className="card bg-base-100 shadow-sm rounded-lg overflow-visible">
       <div className="card-body p-3">
         <h2 className="card-title text-base">{t("popup.basicInfo")}</h2>
 
@@ -109,19 +110,13 @@ export default function BasicInfoCard({
             <label className="label py-1">
               <span className="label-text text-xs">Agent</span>
             </label>
-            <select
-              className="select select-bordered select-sm w-full"
+            <SearchableSelect
+              options={agents.map((a) => ({ id: a.id, label: a.username }))}
               value={selectedAgentId}
-              onChange={(e) => handleAgentChange(e.target.value)}
+              onChange={handleAgentChange}
+              placeholder={t("popup.selectAgent")}
               disabled={isUpdating}
-            >
-              <option value="">{t("popup.selectAgent")}</option>
-              {agents.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.username}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Port Selection */}
@@ -129,20 +124,19 @@ export default function BasicInfoCard({
             <label className="label py-1">
               <span className="label-text text-xs">Port</span>
             </label>
-            <select
-              className="select select-bordered select-sm w-full"
+            <SearchableSelect
+              options={[
+                { id: "", label: t("popup.selectPort") },
+                ...ports.map((p) => ({
+                  id: p.id,
+                  label: `${p.port}${p.description ? ` - ${p.description}` : ""}`,
+                })),
+              ]}
               value={selectedPortId}
-              onChange={(e) => handlePortChange(e.target.value)}
+              onChange={handlePortChange}
+              placeholder={t("popup.selectPort")}
               disabled={isUpdating}
-            >
-              <option value="">{t("popup.selectPort")}</option>
-              {ports.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.port}
-                  {p.description && ` - ${p.description}`}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* URI Selection */}
@@ -150,19 +144,16 @@ export default function BasicInfoCard({
             <label className="label py-1">
               <span className="label-text text-xs">URI</span>
             </label>
-            <select
-              className="select select-bordered select-sm w-full"
+            <SearchableSelect
+              options={uris.map((u) => ({
+                id: u.id,
+                label: u.uri.length > 35 ? `${u.uri.slice(0, 35)}...` : u.uri,
+              }))}
               value={selectedUriId}
-              onChange={(e) => handleUriChange(e.target.value)}
+              onChange={handleUriChange}
+              placeholder={t("popup.selectUri")}
               disabled={isUpdating}
-            >
-              <option value="">{t("popup.selectUri")}</option>
-              {uris.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.uri.length > 35 ? `${u.uri.slice(0, 35)}...` : u.uri}
-                </option>
-              ))}
-            </select>
+            />
           </div>
         </div>
       </div>
