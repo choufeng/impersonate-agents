@@ -484,24 +484,31 @@ function PopupContent() {
       if (mode === "optyInject") {
         console.log("📱 [POPUP] 🧪 使用OPTY注入模式（仅注入，不跳转）");
         
-        // 提取OPTY features（去掉opty_前缀）
-        const optyFeatures = filteredOptyParams
-          .map((param) => {
-            const enabled = tempOverrides.has(`opty_${param.key}`)
-              ? (tempOverrides.get(`opty_${param.key}`) as boolean)
-              : param.value;
-            return enabled ? param.key : null;
-          })
-          .filter((key): key is string => key !== null);
+        // 提取启用和禁用的OPTY features（去掉opty_前缀）
+        const featuresToAdd: string[] = [];
+        const featuresToRemove: string[] = [];
         
-        console.log("📱 [POPUP] 🧪 将要注入的OPTY features:", optyFeatures);
+        filteredOptyParams.forEach((param) => {
+          const enabled = tempOverrides.has(`opty_${param.key}`)
+            ? (tempOverrides.get(`opty_${param.key}`) as boolean)
+            : param.value;
+          
+          if (enabled) {
+            featuresToAdd.push(param.key);
+          } else {
+            featuresToRemove.push(param.key);
+          }
+        });
+        
+        console.log("📱 [POPUP] 🧪 要添加的 OPTY features:", featuresToAdd);
+        console.log("📱 [POPUP] 🧪 要移除的 OPTY features:", featuresToRemove);
         
         // 直接注入OPTY features到当前页面，不进行跳转
-        if (optyFeatures.length > 0) {
-          await injectOptyFeatures(optyFeatures);
+        if (featuresToAdd.length > 0 || featuresToRemove.length > 0) {
+          await injectOptyFeatures(featuresToAdd, featuresToRemove);
           console.log("📱 [POPUP] 🧪 OPTY features注入完成");
         } else {
-          console.log("📱 [POPUP] 🧪 没有启用的OPTY features需要注入");
+          console.log("📱 [POPUP] 🧪 没有需要修改的OPTY features");
         }
       } else {
         // 执行完整的跳转流程（使用临时状态）

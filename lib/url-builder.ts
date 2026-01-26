@@ -401,19 +401,26 @@ const executeRedirectFlow = async (options: {
 /**
  * 通过 JS 注入方式设置 OPTY features
  * 
- * @param features - OPTY feature 数组（不带 opty_ 前缀）
+ * @param featuresToAdd - 要添加/启用的 features（不带 opty_ 前缀）
+ * @param featuresToRemove - 要移除/禁用的 features（不带 opty_ 前缀）
  */
-const injectOptyFeatures = async (features: string[]): Promise<void> => {
+const injectOptyFeatures = async (
+  featuresToAdd: string[],
+  featuresToRemove: string[] = [],
+): Promise<void> => {
   console.log("💉 [OPTY-INJECT] ========== 开始注入 OPTY features ==========");
-  console.log("💉 [OPTY-INJECT] Features:", features);
+  console.log("💉 [OPTY-INJECT] 要添加的 Features:", featuresToAdd);
+  console.log("💉 [OPTY-INJECT] 要移除的 Features:", featuresToRemove);
 
   const tab = await getCurrentTab();
   
   await chrome.scripting.executeScript({
     target: { tabId: tab.id! },
     world: "MAIN" as chrome.scripting.ExecutionWorld,
-    func: (featuresToSet) => {
-      console.log("💉 [PAGE] 页面上下文中注入 OPTY features:", featuresToSet);
+    func: (toAdd, toRemove) => {
+      console.log("💉 [PAGE] 页面上下文中注入 OPTY features");
+      console.log("💉 [PAGE] 要添加:", toAdd);
+      console.log("💉 [PAGE] 要移除:", toRemove);
       
       // 确保 window.uc.opty 存在
       const w = window as any;
@@ -424,21 +431,42 @@ const injectOptyFeatures = async (features: string[]): Promise<void> => {
         w.uc.opty = {};
       }
       
-      // 设置 features 数组
-      (window as any).uc.opty.features = featuresToSet;
+      // 获取现有的 features 数组（如果不存在则初始化为空数组）
+      let currentFeatures: string[] = Array.isArray(w.uc.opty.features) 
+        ? [...w.uc.opty.features] 
+        : [];
       
-      console.log("💉 [PAGE] window.uc.opty.features 已设置为:", (window as any).uc.opty.features);
+      console.log("💉 [PAGE] 现有 features:", currentFeatures);
+      
+      // 移除要禁用的 features
+      currentFeatures = currentFeatures.filter(f => !toRemove.includes(f));
+      
+      // 添加新的 features（去重）
+      toAdd.forEach(feature => {
+        if (!currentFeatures.includes(feature)) {
+          currentFeatures.push(feature);
+        }
+      });
+      
+      // 更新 features 数组
+      w.uc.opty.features = currentFeatures;
+      
+      console.log("💉 [PAGE] 更新后的 features:", w.uc.opty.features);
       
       // 触发自定义事件，通知页面 OPTY 配置已更新
       window.dispatchEvent(
         new CustomEvent("opty-features-updated", {
-          detail: { features: featuresToSet },
+          detail: { 
+            features: currentFeatures,
+            added: toAdd,
+            removed: toRemove,
+          },
         }),
       );
       
       console.log("💉 [PAGE] 已触发 opty-features-updated 事件");
     },
-    args: [features],
+    args: [featuresToAdd, featuresToRemove],
   });
 
   console.log("💉 [OPTY-INJECT] ========== OPTY features 注入完成 ==========");
