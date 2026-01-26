@@ -120,7 +120,7 @@ export default function SearchableSelect({
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-base-100 border border-base-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-[#fffef7] border border-base-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
           {filteredOptions.length === 0 ? (
             <div className="px-3 py-2 text-base-content/50 text-xs">
               No matching options
