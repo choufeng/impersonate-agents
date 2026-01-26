@@ -36,7 +36,8 @@ export default function AgentsSection({
           onClick: onEdit,
         },
         {
-          label: t("common.delete"),
+          label: "",
+          icon: <DeleteIcon size={14} />,
           className: "text-error",
           onClick: onDelete,
         },

@@ -46,7 +46,8 @@ export default function CombinationsSection({
           onClick: onCopy,
         },
         {
-          label: t("common.delete"),
+          label: "",
+          icon: <DeleteIcon size={14} />,
           className: "text-error",
           onClick: onDelete,
         },

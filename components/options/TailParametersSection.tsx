@@ -32,7 +32,8 @@ export default function TailParametersSection({
           onClick: onEdit,
         },
         {
-          label: t("common.delete"),
+          label: "",
+          icon: <DeleteIcon size={14} />,
           className: "text-error",
           onClick: onDelete,
         },
