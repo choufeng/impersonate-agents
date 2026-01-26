@@ -40,12 +40,3 @@ packageJson.displayName = config.displayName;
 packageJson.version = config.version;
 
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-
-// Run Plasmo build
-const buildCommand = `cross-env NODE_ENV=${isProduction ? "production" : "development"} plasmo build`;
-console.log(`🔨 Running: ${buildCommand}`);
-execSync(buildCommand, { stdio: "inherit" });
-
-// Run post-build script to update manifest
-console.log(`\n📝 Updating manifest metadata...`);
-require("./postbuild.cjs");
