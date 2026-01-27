@@ -635,7 +635,7 @@ export const zh: Translations = {
     redirectParamsOnly: "跳转（仅参数）",
     redirectOptyOnly: "跳转（仅opty）",
     redirectParamsAndOpty: "跳转（参数+opty）",
-    redirectOptyInject: "应用（opty注入 - URL方案失败时尝试）",
+    redirectOptyInject: "注入（opty-url方案失败时尝试）",
     addressViewPlaceholder: "地址视图内容即将推出",
     switchToAddressView: "切换到地址视图",
     switchToImpersonateView: "切换到模拟视图",
