@@ -201,6 +201,7 @@ export interface Translations {
     redirectParamsOnly: string;
     redirectOptyOnly: string;
     redirectParamsAndOpty: string;
+    redirectOptyInject: string;
     addressViewPlaceholder: string;
     switchToAddressView: string;
     switchToImpersonateView: string;
@@ -418,6 +419,7 @@ export const en: Translations = {
     redirectParamsOnly: "Redirect (Params Only)",
     redirectOptyOnly: "Redirect (opty Only)",
     redirectParamsAndOpty: "Redirect (Params + opty)",
+    redirectOptyInject: "Apply (opty Inject - Try if URL fails)",
     addressViewPlaceholder: "Address view content coming soon",
     switchToAddressView: "Switch to address view",
     switchToImpersonateView: "Switch to impersonate view",
@@ -633,6 +635,7 @@ export const zh: Translations = {
     redirectParamsOnly: "跳转（仅参数）",
     redirectOptyOnly: "跳转（仅opty）",
     redirectParamsAndOpty: "跳转（参数+opty）",
+    redirectOptyInject: "注入（opty-url方案失败时尝试）",
     addressViewPlaceholder: "地址视图内容即将推出",
     switchToAddressView: "切换到地址视图",
     switchToImpersonateView: "切换到模拟视图",

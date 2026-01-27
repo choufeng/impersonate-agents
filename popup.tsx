@@ -27,6 +27,7 @@ import {
 import {
   buildParametersWithOverrides,
   executeRedirectFlow,
+  injectOptyFeatures,
 } from "./lib/url-builder";
 import type {
   Agent,
@@ -45,7 +46,7 @@ import ActionButtons from "./components/popup/ActionButtons";
 import AddressView from "./components/popup/AddressView";
 
 type PopupView = "impersonate" | "address";
-type RedirectMode = "full" | "paramsOnly" | "optyOnly" | "paramsAndOpty";
+type RedirectMode = "full" | "paramsOnly" | "optyOnly" | "paramsAndOpty" | "optyInject";
 
 function PopupContent() {
   const { t } = useI18n();
@@ -410,6 +411,9 @@ function PopupContent() {
         filteredTailParams = [];
       } else if (mode === "paramsAndOpty") {
         // 参数+opty（都保留，这是默认行为）
+      } else if (mode === "optyInject") {
+        // OPTY注入模式：不在URL中带opty参数，后续通过JS注入
+        // 保留tail参数用于URL，opty参数稍后注入
       }
 
       // 应用临时修改
@@ -468,24 +472,57 @@ function PopupContent() {
       if (
         mode === "paramsOnly" ||
         mode === "optyOnly" ||
-        mode === "paramsAndOpty"
+        mode === "paramsAndOpty" ||
+        mode === "optyInject"
       ) {
         // 非full模式，不使用URI，基于当前URL跳转
         // 通过传递null来表示不改变URI部分
         finalUri = null as any; // 我们需要修改executeRedirectFlow来支持这个
       }
 
-      // 执行完整的跳转流程（使用临时状态）
-      await executeRedirectFlow({
-        currentUrl,
-        combination: tempCombination,
-        agent: finalAgent,
-        port: tempPort,
-        uri: finalUri,
-        params: tempParams,
-        needImpersonate,
-        skipUri: mode !== "full", // 新增标志，表示跳过URI变更
-      });
+      // OPTY注入模式的特殊处理
+      if (mode === "optyInject") {
+        console.log("📱 [POPUP] 🧪 使用OPTY注入模式（仅注入，不跳转）");
+        
+        // 提取启用和禁用的OPTY features（去掉opty_前缀）
+        const featuresToAdd: string[] = [];
+        const featuresToRemove: string[] = [];
+        
+        filteredOptyParams.forEach((param) => {
+          const enabled = tempOverrides.has(`opty_${param.key}`)
+            ? (tempOverrides.get(`opty_${param.key}`) as boolean)
+            : param.value;
+          
+          if (enabled) {
+            featuresToAdd.push(param.key);
+          } else {
+            featuresToRemove.push(param.key);
+          }
+        });
+        
+        console.log("📱 [POPUP] 🧪 要添加的 OPTY features:", featuresToAdd);
+        console.log("📱 [POPUP] 🧪 要移除的 OPTY features:", featuresToRemove);
+        
+        // 直接注入OPTY features到当前页面，不进行跳转
+        if (featuresToAdd.length > 0 || featuresToRemove.length > 0) {
+          await injectOptyFeatures(featuresToAdd, featuresToRemove);
+          console.log("📱 [POPUP] 🧪 OPTY features注入完成");
+        } else {
+          console.log("📱 [POPUP] 🧪 没有需要修改的OPTY features");
+        }
+      } else {
+        // 执行完整的跳转流程（使用临时状态）
+        await executeRedirectFlow({
+          currentUrl,
+          combination: tempCombination,
+          agent: finalAgent,
+          port: tempPort,
+          uri: finalUri,
+          params: tempParams,
+          needImpersonate,
+          skipUri: mode !== "full", // 新增标志，表示跳过URI变更
+        });
+      }
 
       // 记录初始化标记
       await setCurrentCombinationInitialized(selectedCombination.id);

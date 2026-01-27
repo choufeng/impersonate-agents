@@ -33,6 +33,18 @@ const isLocalDomain = (url: string): boolean => {
   }
 };
 
+/**
+ * 判断是否为开发域名（以 dev. 开头）
+ */
+const isDevDomain = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname.startsWith('dev.');
+  } catch {
+    return false;
+  }
+};
+
 // ============================================================================
 // URL 构建基础函数
 // ============================================================================
@@ -53,10 +65,18 @@ const buildBaseURL = (
   const url = new URL(currentUrl);
   let base = `${url.protocol}//${url.hostname}`;
 
-  // 只在本地域名（有端口号）且有配置端口时添加端口
-  if (isLocalDomain(currentUrl) && port) {
-    base = `${base}:${port}`;
+  // 端口处理逻辑：
+  // 只有 dev. 开头的域名才处理端口
+  if (isDevDomain(currentUrl)) {
+    if (port) {
+      // dev.域名选择了具体端口，使用选择的端口
+      base = `${base}:${port}`;
+    } else if (url.port) {
+      // dev.域名没选择端口（Default Port），保留原端口
+      base = `${base}:${url.port}`;
+    }
   }
+  // 其他域名（生产域名等）不添加端口，即使选择了端口也忽略
 
   return `${base}${uri}`;
 };
@@ -121,12 +141,18 @@ const buildTargetURL = (
     const url = new URL(currentUrl);
     baseURL = `${url.protocol}//${url.hostname}`;
 
-    // 处理端口
-    if (isLocalDomain(currentUrl) && port) {
-      baseURL = `${baseURL}:${port}`;
-    } else if (url.port) {
-      baseURL = `${baseURL}:${url.port}`;
+    // 端口处理逻辑：
+    // 只有 dev. 开头的域名才处理端口
+    if (isDevDomain(currentUrl)) {
+      if (port) {
+        // dev.域名选择了具体端口，使用选择的端口
+        baseURL = `${baseURL}:${port}`;
+      } else if (url.port) {
+        // dev.域名没选择端口（Default Port），保留原端口
+        baseURL = `${baseURL}:${url.port}`;
+      }
     }
+    // 其他域名（生产域名等）不添加端口，即使选择了端口也忽略
 
     // 保留原有路径
     baseURL = `${baseURL}${url.pathname}`;
@@ -254,7 +280,7 @@ const executeImpersonateInPage = async (
 
   await chrome.scripting.executeScript({
     target: { tabId: tab.id! },
-    world: chrome.scripting.ExecutionWorld.MAIN,
+    world: "MAIN" as chrome.scripting.ExecutionWorld,
     func: (url: string, user: string) => {
       console.log("🟢 [PAGE] 进入页面上下文");
       console.log("🟢 [PAGE] 目标URL:", url);
@@ -398,6 +424,68 @@ const executeRedirectFlow = async (options: {
   console.log("🚀 [REDIRECT] ========== 跳转流程结束 ==========");
 };
 
+/**
+ * 通过 JS 注入方式设置 OPTY features
+ * 
+ * @param featuresToAdd - 要添加/启用的 features（不带 opty_ 前缀）
+ * @param featuresToRemove - 要移除/禁用的 features（不带 opty_ 前缀）
+ */
+const injectOptyFeatures = async (
+  featuresToAdd: string[],
+  featuresToRemove: string[] = [],
+): Promise<void> => {
+  console.log("💉 [OPTY-INJECT] ========== 开始注入 OPTY features ==========");
+  console.log("💉 [OPTY-INJECT] 要添加的 Features:", featuresToAdd);
+  console.log("💉 [OPTY-INJECT] 要移除的 Features:", featuresToRemove);
+
+  const tab = await getCurrentTab();
+  
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id! },
+    world: "MAIN" as chrome.scripting.ExecutionWorld,
+    func: (toAdd, toRemove) => {
+      console.log("💉 [PAGE] 页面上下文中注入 OPTY features");
+      console.log("💉 [PAGE] 要添加:", toAdd);
+      console.log("💉 [PAGE] 要移除:", toRemove);
+      
+      // 确保 window.uc.opty 存在
+      const w = window as any;
+      if (!w.uc) {
+        w.uc = {};
+      }
+      if (!w.uc.opty) {
+        w.uc.opty = {};
+      }
+      
+      // 获取现有的 features 对象（如果不存在或不是对象则初始化为空对象）
+      let currentFeatures: Record<string, boolean> = 
+        typeof w.uc.opty.features === 'object' && !Array.isArray(w.uc.opty.features)
+          ? { ...w.uc.opty.features } 
+          : {};
+      
+      console.log("💉 [PAGE] 现有 features:", currentFeatures);
+      
+      // 禁用 features（设置为 false）
+      toRemove.forEach(feature => {
+        currentFeatures[feature] = false;
+      });
+      
+      // 启用 features（设置为 true）
+      toAdd.forEach(feature => {
+        currentFeatures[feature] = true;
+      });
+      
+      // 更新 features 对象
+      w.uc.opty.features = currentFeatures;
+      
+      console.log("💉 [PAGE] 更新后的 features:", w.uc.opty.features);
+    },
+    args: [featuresToAdd, featuresToRemove],
+  });
+
+  console.log("💉 [OPTY-INJECT] ========== OPTY features 注入完成 ==========");
+};
+
 // ============================================================================
 // 导出所有函数
 // ============================================================================
@@ -413,4 +501,5 @@ export {
   redirectTab,
   sleep,
   executeRedirectFlow,
+  injectOptyFeatures,
 };

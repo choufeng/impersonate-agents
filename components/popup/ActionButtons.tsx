@@ -3,13 +3,18 @@ import {
   SettingsIcon,
   MapPinIcon,
   AppWindowIcon,
-  PenLineIcon,
+  ChevronDownIcon,
 } from "../icons";
 import { useI18n } from "../../lib/I18nProvider";
 import Tooltip from "../Tooltip";
 
 type PopupView = "impersonate" | "address";
-type RedirectMode = "full" | "paramsOnly" | "optyOnly" | "paramsAndOpty";
+type RedirectMode =
+  | "full"
+  | "paramsOnly"
+  | "optyOnly"
+  | "paramsAndOpty"
+  | "optyInject";
 
 interface ActionButtonsProps {
   selectedCombination: boolean;
@@ -65,31 +70,41 @@ export default function ActionButtons({
             )}
           </button>
         </Tooltip>
-        {!isAddressView &&
-          (!selectedCombination || isLoading ? (
+        {!isAddressView && (
+          <div className="flex flex-1">
             <button
-              className="btn btn-success flex-1"
+              data-tn="redirect-full"
+              className="btn btn-success flex-1 rounded-r-none border-r-0"
               disabled={!selectedCombination || isLoading}
+              onClick={() => onRedirect("full")}
             >
               {isLoading ? (
                 t("popup.redirecting")
               ) : (
                 <>
                   <RocketIcon size={16} className="mr-2" />
-                  {t("popup.redirect")}
+                  {t("popup.redirectFull")}
                 </>
               )}
             </button>
-          ) : (
-            <details className="dropdown dropdown-top dropdown-end flex-1">
-              <summary className="btn btn-success w-full">
-                <RocketIcon size={16} className="mr-2" />
-                {t("popup.redirect")}
+            <details className="dropdown dropdown-top dropdown-end">
+              <summary
+                data-tn="redirect-dropdown"
+                className={`btn btn-success rounded-l-none px-2 ${
+                  !selectedCombination || isLoading
+                    ? "btn-disabled pointer-events-none"
+                    : ""
+                }`}
+              >
+                <ChevronDownIcon size={14} />
               </summary>
-              <ul className="dropdown-content menu bg-[#fffef7] rounded-box z-[1] w-64 p-2 shadow mb-1">
+              <ul className="dropdown-content menu bg-[#fffef7] rounded-box z-[1] w-72 p-2 shadow mb-1">
                 <li>
-                  <a data-tn="redirect-full" onClick={() => onRedirect("full")}>
-                    {t("popup.redirectFull")}
+                  <a
+                    data-tn="redirect-params-and-opty"
+                    onClick={() => onRedirect("paramsAndOpty")}
+                  >
+                    {t("popup.redirectParamsAndOpty")}
                   </a>
                 </li>
                 <li>
@@ -110,15 +125,16 @@ export default function ActionButtons({
                 </li>
                 <li>
                   <a
-                    data-tn="redirect-params-and-opty"
-                    onClick={() => onRedirect("paramsAndOpty")}
+                    data-tn="redirect-opty-inject"
+                    onClick={() => onRedirect("optyInject")}
                   >
-                    {t("popup.redirectParamsAndOpty")}
+                    {t("popup.redirectOptyInject")}
                   </a>
                 </li>
               </ul>
             </details>
-          ))}
+          </div>
+        )}
       </div>
     </>
   );
