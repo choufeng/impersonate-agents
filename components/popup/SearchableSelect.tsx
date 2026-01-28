@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 interface SearchableSelectProps {
-  options: Array<{ id: string; label: string }>;
+  options: Array<{ id: string; label: string; description?: string }>;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
@@ -138,7 +138,18 @@ export default function SearchableSelect({
                 }`}
                 onClick={() => handleSelect(opt.id)}
               >
-                {opt.label}
+                <div className="font-medium truncate">{opt.label}</div>
+                {opt.description && (
+                  <div
+                    className={`text-[10px] whitespace-pre-wrap mt-0.5 ${
+                      opt.id === value
+                        ? "text-primary-content/80"
+                        : "text-base-content/60"
+                    }`}
+                  >
+                    {opt.description}
+                  </div>
+                )}
               </div>
             ))
           )}
