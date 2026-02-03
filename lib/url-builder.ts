@@ -39,7 +39,7 @@ const isLocalDomain = (url: string): boolean => {
 const isDevDomain = (url: string): boolean => {
   try {
     const urlObj = new URL(url);
-    return urlObj.hostname.startsWith('dev.');
+    return urlObj.hostname.startsWith("dev.");
   } catch {
     return false;
   }
@@ -321,32 +321,22 @@ const executeImpersonateInPage = async (
           });
       }
 
-      // 检查是否已经处于impersonate状态
-      const impersonationBanner = document.querySelector(
-        "header.uc-impersonationBanner",
-      );
-      console.log(
-        "🟢 [PAGE] 检测到 impersonation banner:",
-        !!impersonationBanner,
-      );
-
-      if (impersonationBanner) {
-        console.log("🟢 [PAGE] 先取消当前 impersonate");
-        // 先取消当前impersonate
-        postRequest("/unimpersonate/", {
-          impersonation_tool: "impersonation_banner",
+      // 始终执行：先取消当前 impersonate，再执行新的 impersonate
+      console.log("🟢 [PAGE] 执行切换模拟流程：先取消，后模拟");
+      postRequest("/unimpersonate/", {
+        impersonation_tool: "impersonation_banner",
+      })
+        .then(() => {
+          console.log("🟢 [PAGE] 取消成功，现在执行新的 impersonate");
+          impersonateUser(user);
         })
-          .then(() => {
-            console.log("🟢 [PAGE] 取消成功，现在执行新的 impersonate");
-            impersonateUser(user);
-          })
-          .catch((error) => {
-            console.error("🔴 [PAGE] 取消 impersonate 失败:", error);
-          });
-      } else {
-        console.log("🟢 [PAGE] 直接执行 impersonate");
-        impersonateUser(user);
-      }
+        .catch((error) => {
+          console.warn(
+            "🟢 [PAGE] 取消当前模拟时可能出错（可能当前未模拟），继续执行新的模拟:",
+            error,
+          );
+          impersonateUser(user);
+        });
     },
     args: [targetUrl, userId],
   });
@@ -373,7 +363,7 @@ const executeImpersonateInPage = async (
 const executeRedirectFlow = async (options: {
   currentUrl: string;
   combination: Combination;
-  agent: Agent;
+  agent: Agent | null;
   port?: Port | null;
   uri: UriEntry | null;
   params: TempOverride[];
@@ -414,7 +404,7 @@ const executeRedirectFlow = async (options: {
   // 如果需要 impersonate，使用页面上下文执行POST请求
   if (needImpersonate) {
     console.log("🚀 [REDIRECT] ✅ 需要执行 impersonate");
-    await executeImpersonateInPage(targetURL, agent.id);
+    await executeImpersonateInPage(targetURL, agent!.id);
   } else {
     console.log("🚀 [REDIRECT] ⏭️  跳过 impersonate，直接跳转");
     // 不需要 impersonate，直接跳转
@@ -426,7 +416,7 @@ const executeRedirectFlow = async (options: {
 
 /**
  * 通过 JS 注入方式设置 OPTY features
- * 
+ *
  * @param featuresToAdd - 要添加/启用的 features（不带 opty_ 前缀）
  * @param featuresToRemove - 要移除/禁用的 features（不带 opty_ 前缀）
  */
@@ -439,7 +429,7 @@ const injectOptyFeatures = async (
   console.log("💉 [OPTY-INJECT] 要移除的 Features:", featuresToRemove);
 
   const tab = await getCurrentTab();
-  
+
   await chrome.scripting.executeScript({
     target: { tabId: tab.id! },
     world: "MAIN" as chrome.scripting.ExecutionWorld,
@@ -447,7 +437,7 @@ const injectOptyFeatures = async (
       console.log("💉 [PAGE] 页面上下文中注入 OPTY features");
       console.log("💉 [PAGE] 要添加:", toAdd);
       console.log("💉 [PAGE] 要移除:", toRemove);
-      
+
       // 确保 window.uc.opty 存在
       const w = window as any;
       if (!w.uc) {
@@ -456,28 +446,29 @@ const injectOptyFeatures = async (
       if (!w.uc.opty) {
         w.uc.opty = {};
       }
-      
+
       // 获取现有的 features 对象（如果不存在或不是对象则初始化为空对象）
-      let currentFeatures: Record<string, boolean> = 
-        typeof w.uc.opty.features === 'object' && !Array.isArray(w.uc.opty.features)
-          ? { ...w.uc.opty.features } 
+      let currentFeatures: Record<string, boolean> =
+        typeof w.uc.opty.features === "object" &&
+        !Array.isArray(w.uc.opty.features)
+          ? { ...w.uc.opty.features }
           : {};
-      
+
       console.log("💉 [PAGE] 现有 features:", currentFeatures);
-      
+
       // 禁用 features（设置为 false）
-      toRemove.forEach(feature => {
+      toRemove.forEach((feature) => {
         currentFeatures[feature] = false;
       });
-      
+
       // 启用 features（设置为 true）
-      toAdd.forEach(feature => {
+      toAdd.forEach((feature) => {
         currentFeatures[feature] = true;
       });
-      
+
       // 更新 features 对象
       w.uc.opty.features = currentFeatures;
-      
+
       console.log("💉 [PAGE] 更新后的 features:", w.uc.opty.features);
     },
     args: [featuresToAdd, featuresToRemove],
