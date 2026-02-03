@@ -94,7 +94,9 @@ export default function SearchableSelect({
         <input
           ref={inputRef}
           type="text"
-          className="input input-bordered input-sm w-full pr-8"
+          className={`input input-bordered input-sm w-full pr-8 ${
+            selectedOption ? "placeholder:text-base-content" : ""
+          }`}
           placeholder={selectedOption ? selectedOption.label : placeholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -129,7 +131,7 @@ export default function SearchableSelect({
             filteredOptions.map((opt, index) => (
               <div
                 key={opt.id}
-                className={`px-3 py-2 cursor-pointer text-xs ${
+                className={`px-3 py-2 cursor-pointer text-xs border-b border-base-200 last:border-b-0 ${
                   opt.id === value
                     ? "bg-primary text-primary-content"
                     : index === focusedIndex

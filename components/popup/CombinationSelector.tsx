@@ -90,7 +90,9 @@ export default function CombinationSelector({
         <input
           ref={inputRef}
           type="text"
-          className="input input-bordered w-full h-10 pr-10"
+          className={`input input-bordered w-full h-10 pr-10 ${
+            selectedCombo ? "placeholder:text-base-content" : ""
+          }`}
           placeholder={
             selectedCombo ? selectedCombo.title : t("popup.selectConfig")
           }
@@ -127,7 +129,7 @@ export default function CombinationSelector({
             filteredCombinations.map((combo, index) => (
               <div
                 key={combo.id}
-                className={`px-4 py-2 cursor-pointer text-sm ${
+                className={`px-4 py-2 cursor-pointer text-sm border-b border-base-200 last:border-b-0 ${
                   combo.id === selectedCombinationId
                     ? "bg-primary text-primary-content"
                     : index === focusedIndex
