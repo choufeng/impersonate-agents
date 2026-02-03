@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 interface SearchableSelectProps {
-  options: Array<{ id: string; label: string }>;
+  options: Array<{ id: string; label: string; description?: string }>;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
@@ -94,7 +94,9 @@ export default function SearchableSelect({
         <input
           ref={inputRef}
           type="text"
-          className="input input-bordered input-sm w-full pr-8"
+          className={`input input-bordered input-sm w-full pr-8 ${
+            selectedOption ? "placeholder:text-base-content" : ""
+          }`}
           placeholder={selectedOption ? selectedOption.label : placeholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -120,7 +122,7 @@ export default function SearchableSelect({
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-[#fffef7] border border-base-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-[#fffef7] border border-base-300 rounded-lg shadow-lg max-h-96 overflow-y-auto">
           {filteredOptions.length === 0 ? (
             <div className="px-3 py-2 text-base-content/50 text-xs">
               No matching options
@@ -129,7 +131,7 @@ export default function SearchableSelect({
             filteredOptions.map((opt, index) => (
               <div
                 key={opt.id}
-                className={`px-3 py-2 cursor-pointer text-xs ${
+                className={`px-3 py-2 cursor-pointer text-xs border-b border-base-200 last:border-b-0 ${
                   opt.id === value
                     ? "bg-primary text-primary-content"
                     : index === focusedIndex
@@ -138,7 +140,18 @@ export default function SearchableSelect({
                 }`}
                 onClick={() => handleSelect(opt.id)}
               >
-                {opt.label}
+                <div className="font-medium truncate">{opt.label}</div>
+                {opt.description && (
+                  <div
+                    className={`text-[10px] whitespace-pre-wrap mt-0.5 ${
+                      opt.id === value
+                        ? "text-primary-content/80"
+                        : "text-base-content/60"
+                    }`}
+                  >
+                    {opt.description}
+                  </div>
+                )}
               </div>
             ))
           )}

@@ -46,7 +46,12 @@ import ActionButtons from "./components/popup/ActionButtons";
 import AddressView from "./components/popup/AddressView";
 
 type PopupView = "impersonate" | "address";
-type RedirectMode = "full" | "paramsOnly" | "optyOnly" | "paramsAndOpty" | "optyInject";
+type RedirectMode =
+  | "full"
+  | "paramsOnly"
+  | "optyOnly"
+  | "paramsAndOpty"
+  | "optyInject";
 
 function PopupContent() {
   const { t } = useI18n();
@@ -455,16 +460,11 @@ function PopupContent() {
       // 确定最终使用的 Agent
       const finalAgent = tempAgent || agent!;
 
-      // 检查是否需要 impersonate（比较 Agent ID）
-      const currentImpersonatedAgentId = await getCurrentImpersonatedAgentId();
-      const needImpersonate = currentImpersonatedAgentId !== finalAgent.id;
+      // 检查是否需要 impersonate（只要有 Agent 就要执行）
+      const needImpersonate = !!finalAgent;
 
-      console.log(
-        "📱 [POPUP] 当前已模拟的Agent ID:",
-        currentImpersonatedAgentId,
-      );
-      console.log("📱 [POPUP] 即将使用的Agent ID:", finalAgent.id);
-      console.log("📱 [POPUP] 即将使用的Agent:", finalAgent);
+      console.log("📱 [POPUP] 即将使用的Agent ID:", finalAgent?.id || "None");
+      console.log("📱 [POPUP] 即将使用的Agent:", finalAgent || "None");
       console.log("📱 [POPUP] ✅ 需要Impersonate:", needImpersonate);
 
       // 根据模式决定是否使用URI
@@ -483,26 +483,26 @@ function PopupContent() {
       // OPTY注入模式的特殊处理
       if (mode === "optyInject") {
         console.log("📱 [POPUP] 🧪 使用OPTY注入模式（仅注入，不跳转）");
-        
+
         // 提取启用和禁用的OPTY features（去掉opty_前缀）
         const featuresToAdd: string[] = [];
         const featuresToRemove: string[] = [];
-        
+
         filteredOptyParams.forEach((param) => {
           const enabled = tempOverrides.has(`opty_${param.key}`)
             ? (tempOverrides.get(`opty_${param.key}`) as boolean)
             : param.value;
-          
+
           if (enabled) {
             featuresToAdd.push(param.key);
           } else {
             featuresToRemove.push(param.key);
           }
         });
-        
+
         console.log("📱 [POPUP] 🧪 要添加的 OPTY features:", featuresToAdd);
         console.log("📱 [POPUP] 🧪 要移除的 OPTY features:", featuresToRemove);
-        
+
         // 直接注入OPTY features到当前页面，不进行跳转
         if (featuresToAdd.length > 0 || featuresToRemove.length > 0) {
           await injectOptyFeatures(featuresToAdd, featuresToRemove);

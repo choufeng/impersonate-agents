@@ -129,7 +129,8 @@ export default function BasicInfoCard({
                 { id: "", label: t("popup.selectPort") },
                 ...ports.map((p) => ({
                   id: p.id,
-                  label: `${p.port}${p.description ? ` - ${p.description}` : ""}`,
+                  label: `${p.port}`,
+                  description: p.description,
                 })),
               ]}
               value={selectedPortId}
@@ -148,6 +149,7 @@ export default function BasicInfoCard({
               options={uris.map((u) => ({
                 id: u.id,
                 label: u.uri.length > 35 ? `${u.uri.slice(0, 35)}...` : u.uri,
+                description: u.description,
               }))}
               value={selectedUriId}
               onChange={handleUriChange}
