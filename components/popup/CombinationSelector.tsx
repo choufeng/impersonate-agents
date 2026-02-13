@@ -120,7 +120,7 @@ export default function CombinationSelector({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-[#fffef7] border border-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-[9999] w-full mt-1 bg-[#fffef7] border border-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {filteredCombinations.length === 0 ? (
             <div className="px-4 py-2 text-base-content/50 text-sm">
               {t("popup.noMatchingConfig")}

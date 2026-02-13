@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from "react";
 import { useI18n } from "../lib/I18nProvider";
+import SearchableSelect from "./popup/SearchableSelect";
 import type {
   Agent,
   Port,
@@ -328,18 +329,15 @@ export default function CombinationWizardModal({
             </button>
           </span>
         </label>
-        <select
-          className="select select-bordered"
+        <SearchableSelect
+          options={agents.map((agent) => ({
+            id: agent.id,
+            label: agent.username,
+          }))}
           value={selectedAgentId || ""}
-          onChange={(e) => setSelectedAgentId(e.target.value || null)}
-        >
-          <option value="">{t("wizard.selectAgentPlaceholder")}</option>
-          {agents.map((agent) => (
-            <option key={agent.id} value={agent.id}>
-              {agent.username}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setSelectedAgentId(value || null)}
+          placeholder={t("wizard.selectAgentPlaceholder")}
+        />
       </div>
 
       <div className="form-control">
@@ -354,18 +352,16 @@ export default function CombinationWizardModal({
             </button>
           </span>
         </label>
-        <select
-          className="select select-bordered"
+        <SearchableSelect
+          options={ports.map((port) => ({
+            id: port.id,
+            label: `${port.port}`,
+            description: port.description,
+          }))}
           value={selectedPortId || ""}
-          onChange={(e) => setSelectedPortId(e.target.value || null)}
-        >
-          <option value="">{t("wizard.selectPortPlaceholder")}</option>
-          {ports.map((port) => (
-            <option key={port.id} value={port.id}>
-              {port.port} {port.description ? `- ${port.description}` : ""}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setSelectedPortId(value || null)}
+          placeholder={t("wizard.selectPortPlaceholder")}
+        />
       </div>
 
       <div className="form-control">
@@ -380,18 +376,16 @@ export default function CombinationWizardModal({
             </button>
           </span>
         </label>
-        <select
-          className="select select-bordered"
+        <SearchableSelect
+          options={uris.map((uri) => ({
+            id: uri.id,
+            label: uri.uri,
+            description: uri.description,
+          }))}
           value={selectedUriId || ""}
-          onChange={(e) => setSelectedUriId(e.target.value || null)}
-        >
-          <option value="">{t("wizard.selectUriPlaceholder")}</option>
-          {uris.map((uri) => (
-            <option key={uri.id} value={uri.id}>
-              {uri.uri.length > 50 ? `${uri.uri.slice(0, 50)}...` : uri.uri}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setSelectedUriId(value || null)}
+          placeholder={t("wizard.selectUriPlaceholder")}
+        />
       </div>
     </div>
   );
