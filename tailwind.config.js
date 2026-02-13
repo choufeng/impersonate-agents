@@ -5,7 +5,6 @@ export default {
   content: [
     "./popup.tsx",
     "./options.tsx",
-    "./newtab.tsx",
     "./tabs/**/*.{ts,tsx}",
     "./contents/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 interface SearchableSelectProps {
   options: Array<{ id: string; label: string; description?: string }>;
@@ -20,6 +21,11 @@ export default function SearchableSelect({
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -29,11 +35,24 @@ export default function SearchableSelect({
     opt.label.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const updateDropdownPosition = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
         setSearchTerm("");
@@ -44,11 +63,30 @@ export default function SearchableSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      updateDropdownPosition();
+      window.addEventListener("scroll", updateDropdownPosition, true);
+      window.addEventListener("resize", updateDropdownPosition);
+      return () => {
+        window.removeEventListener("scroll", updateDropdownPosition, true);
+        window.removeEventListener("resize", updateDropdownPosition);
+      };
+    }
+  }, [isOpen]);
+
   const handleSelect = (id: string) => {
     onChange(id);
     setIsOpen(false);
     setSearchTerm("");
     setFocusedIndex(-1);
+  };
+
+  const handleOpen = () => {
+    if (!disabled) {
+      setIsOpen(true);
+      updateDropdownPosition();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -100,7 +138,7 @@ export default function SearchableSelect({
           placeholder={selectedOption ? selectedOption.label : placeholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => !disabled && setIsOpen(true)}
+          onFocus={handleOpen}
           onKeyDown={handleKeyDown}
           disabled={disabled}
         />
@@ -121,42 +159,54 @@ export default function SearchableSelect({
         </div>
       </div>
 
-      {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-[#fffef7] border border-base-300 rounded-lg shadow-lg max-h-96 overflow-y-auto">
-          {filteredOptions.length === 0 ? (
-            <div className="px-3 py-2 text-base-content/50 text-xs">
-              No matching options
-            </div>
-          ) : (
-            filteredOptions.map((opt, index) => (
-              <div
-                key={opt.id}
-                className={`px-3 py-2 cursor-pointer text-xs border-b border-base-200 last:border-b-0 ${
-                  opt.id === value
-                    ? "bg-primary text-primary-content"
-                    : index === focusedIndex
-                      ? "bg-base-200"
-                      : "hover:bg-base-200"
-                }`}
-                onClick={() => handleSelect(opt.id)}
-              >
-                <div className="font-medium truncate">{opt.label}</div>
-                {opt.description && (
-                  <div
-                    className={`text-[10px] whitespace-pre-wrap mt-0.5 ${
-                      opt.id === value
-                        ? "text-primary-content/80"
-                        : "text-base-content/60"
-                    }`}
-                  >
-                    {opt.description}
-                  </div>
-                )}
+      {isOpen &&
+        !disabled &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed z-[9999] bg-[#fffef7] border border-base-300 rounded-lg shadow-lg max-h-96 overflow-y-auto"
+            style={{
+              top: `${dropdownPosition.top + 4}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+            }}
+          >
+            {filteredOptions.length === 0 ? (
+              <div className="px-3 py-2 text-base-content/50 text-xs">
+                No matching options
               </div>
-            ))
-          )}
-        </div>
-      )}
+            ) : (
+              filteredOptions.map((opt, index) => (
+                <div
+                  key={opt.id}
+                  className={`px-3 py-2 cursor-pointer text-xs border-b border-base-200 last:border-b-0 ${
+                    opt.id === value
+                      ? "bg-primary text-primary-content"
+                      : index === focusedIndex
+                        ? "bg-base-200"
+                        : "hover:bg-base-200"
+                  }`}
+                  onClick={() => handleSelect(opt.id)}
+                >
+                  <div className="font-medium truncate">{opt.label}</div>
+                  {opt.description && (
+                    <div
+                      className={`text-[10px] whitespace-pre-wrap mt-0.5 ${
+                        opt.id === value
+                          ? "text-primary-content/80"
+                          : "text-base-content/60"
+                      }`}
+                    >
+                      {opt.description}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

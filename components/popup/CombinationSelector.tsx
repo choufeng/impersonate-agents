@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import type { Combination } from "../../lib/types";
 import { useI18n } from "../../lib/I18nProvider";
 
@@ -17,6 +18,11 @@ export default function CombinationSelector({
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -28,11 +34,24 @@ export default function CombinationSelector({
     combo.title.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const updateDropdownPosition = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
       }
@@ -42,11 +61,28 @@ export default function CombinationSelector({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      updateDropdownPosition();
+      window.addEventListener("scroll", updateDropdownPosition, true);
+      window.addEventListener("resize", updateDropdownPosition);
+      return () => {
+        window.removeEventListener("scroll", updateDropdownPosition, true);
+        window.removeEventListener("resize", updateDropdownPosition);
+      };
+    }
+  }, [isOpen]);
+
   const handleSelect = (id: string) => {
     onCombinationChange(id);
     setIsOpen(false);
     setSearchTerm("");
     setFocusedIndex(-1);
+  };
+
+  const handleOpen = () => {
+    setIsOpen(true);
+    updateDropdownPosition();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -98,7 +134,7 @@ export default function CombinationSelector({
           }
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => setIsOpen(true)}
+          onFocus={handleOpen}
           onKeyDown={handleKeyDown}
           data-tn="combination-search-input"
         />
@@ -119,32 +155,43 @@ export default function CombinationSelector({
         </div>
       </div>
 
-      {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-[#fffef7] border border-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {filteredCombinations.length === 0 ? (
-            <div className="px-4 py-2 text-base-content/50 text-sm">
-              {t("popup.noMatchingConfig")}
-            </div>
-          ) : (
-            filteredCombinations.map((combo, index) => (
-              <div
-                key={combo.id}
-                className={`px-4 py-2 cursor-pointer text-sm border-b border-base-200 last:border-b-0 ${
-                  combo.id === selectedCombinationId
-                    ? "bg-primary text-primary-content"
-                    : index === focusedIndex
-                      ? "bg-base-200"
-                      : "hover:bg-base-200"
-                }`}
-                onClick={() => handleSelect(combo.id)}
-                data-tn={`combination-option-${combo.id}`}
-              >
-                {combo.title}
+      {isOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed z-[9999] bg-[#fffef7] border border-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+            style={{
+              top: `${dropdownPosition.top + 4}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+            }}
+          >
+            {filteredCombinations.length === 0 ? (
+              <div className="px-4 py-2 text-base-content/50 text-sm">
+                {t("popup.noMatchingConfig")}
               </div>
-            ))
-          )}
-        </div>
-      )}
+            ) : (
+              filteredCombinations.map((combo, index) => (
+                <div
+                  key={combo.id}
+                  className={`px-4 py-2 cursor-pointer text-sm border-b border-base-200 last:border-b-0 ${
+                    combo.id === selectedCombinationId
+                      ? "bg-primary text-primary-content"
+                      : index === focusedIndex
+                        ? "bg-base-200"
+                        : "hover:bg-base-200"
+                  }`}
+                  onClick={() => handleSelect(combo.id)}
+                  data-tn={`combination-option-${combo.id}`}
+                >
+                  {combo.title}
+                </div>
+              ))
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
